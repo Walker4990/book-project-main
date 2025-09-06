@@ -1,0 +1,12 @@
+#uploadFile,
+#title {
+	grid-column: 1 / -1;
+}
+
+#updateContent{
+	grid-column: 1 / -1;
+}
+
+#retouch{
+	grid-column: 1 / -1;
+}

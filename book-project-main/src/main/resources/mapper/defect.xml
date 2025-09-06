@@ -1,0 +1,171 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.defect.mapper.DefectMapper">
+
+<resultMap id="DefectMap" type="Defect">
+<id property="defectNo" column="defect_no"/>
+<result property="bookNo" column="book_no"/>
+<result property="title" column="title"/>
+<result property="printDate" column="print_date"/>
+<result property="status" column="status"/>
+<result property="content" column="content"/>
+<result property="quantity" column="quantity"/>
+<result property="price" column="price"/>
+<result property="totalAmount" column="total_amount"/>
+<result property="defectDate" column="defect_date"/>
+<result property="detailNo" column="detail_no"/>
+</resultMap>
+
+<!-- 불량 도서 추가하기 -->
+<insert id="newDefect" parameterType="Defect">
+INSERT INTO defect (order_no,book_no, title, print_date, status, content, quantity, price, total_amount, defect_date, detail_no)
+VALUES(#{orderNo},#{bookNo}, #{title}, #{printDate}, #{status}, #{content}, #{quantity}, #{price}, #{totalAmount}, #{defectDate}, #{detailNo})
+</insert>
+
+
+<!--Q.C 항목 추가-->
+<insert id="insertQualityCheck" parameterType="QualityCheck">
+INSERT INTO quality_check (order_no, book_no, inspector, check_date, check_quantity, defect_reason, create_time)
+VALUES (#{orderNo}, #{bookNo}, #{inspector}, NOW(),#{checkQuantity}, #{defectReason}, NOW())
+</insert>
+
+<!--도서 목록 가져오기 -->
+<select id="selectBook" parameterType="int" resultType="Book">
+SELECT title,
+       price FROM book
+WHERE book_no = #{bookNo}
+</select>
+
+<select id="findDefectNo" resultType="Defect">
+SELECT *
+ FROM defect
+ ORDER BY defect_no DESC
+ LIMIT 1
+</select>
+
+<select id="findDefectbyDefectNo" parameterType="int" resultType="Defect">
+SELECT *
+ FROM defect
+ where defect_no = #{defectNo};
+</select>
+
+<select id="selectOrderDetailByOrderNo" parameterType="int" resultType="PrintOrderDetailVO">
+select * from print_order_detail
+where order_no = #{orderNo}
+</select>
+
+<select id="selectOrderDetailByDetailNo" parameterType="int" resultType="PrintOrderDetailVO">
+select * from print_order_detail
+where detail_no = #{detailNo}
+</select>
+
+
+<update id="updateDetail" parameterType="PrintOrderDetailVO">
+UPDATE print_order_detail
+SET quantity = #{quantity},
+total_amount = #{totalAmount}
+WHERE detail_no = #{detailNo}	
+</update>
+
+<update id="updateInventory" parameterType="Inventory">
+UPDATE inventory
+SET quantity = #{quantity}
+WHERE defect_no = #{defectNo}	
+</update>
+
+
+
+<!-- 불량 도서 검색하기 : 책 이름으로 -->
+<select id="searchDefect" parameterType="DefectPagingDTO" resultMap="DefectMap">
+SELECT * FROM defect 
+<where>
+  <choose>
+     <when test="select == 'title' and keyword != null and keyword != ''">
+      title LIKE CONCAT('%', #{keyword}, '%')
+     </when>
+     <when test="select == 'status' and keyword != null and keyword != ''">
+      status LIKE CONCAT('%', #{keyword}, '%')
+     </when>
+  </choose>
+</where>
+LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!--페이징 처리-->
+<select id="countDefect" parameterType="DefectPagingDTO" resultType="int">
+SELECT COUNT(*) FROM defect
+<where>
+	<choose>
+		<when test="select == 'status' and keyword != null and keyword != ''">
+			status LIKE CONCAT('%',#{keyword},'%')
+		</when>
+		<when test="select == 'title' and keyword != null and keyword != ''">
+			title LIKE CONCAT('%',#{keyword},'%')
+		</when>
+	</choose>
+</where>
+</select>
+<select id="countAll" resultType="int">
+	SELECT COUNT(*) FROM defect
+</select>
+
+<!-- 불량 도서 전체 조회하기 -->
+<select id="allDefect" parameterType="DefectPagingDTO" resultMap="DefectMap">
+SELECT * FROM defect
+LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 특정 보고서 조회하기 -->
+<select id="selectDefect" parameterType="int" resultMap="DefectMap">
+SELECT * FROM defect
+WHERE defect_no = #{defectNo}
+</select>
+
+<!-- 불량 도서 정보 수정하기 -->
+<update id="updateDefect" parameterType="Defect">
+UPDATE defect
+SET print_date = #{printDate},
+    status = #{status},
+    content = #{content},
+    quantity = #{quantity},
+    total_amount = #{totalAmount}
+WHERE defect_no = #{defectNo}
+</update>
+
+<!-- 불량 도서 항목 삭제하기 -->
+<delete id="deleteDefect" parameterType="int">
+DELETE FROM defect
+WHERE defect_no = #{defectNo}
+</delete>
+<!--계약 삭제 시 책 삭제-->
+<delete id="deleteByBookNo">
+    DELETE FROM defect WHERE book_no = #{bookNo}
+</delete>
+
+
+<!--불량품 건수 / 불량률 차트-->
+<select id="selectDefectStats" resultType="map">
+SELECT 
+    b.title AS book_title,                  
+    SUM(d.quantity) AS defect_count,         
+    SUM(i.quantity) AS stock_count,          
+    ROUND(
+      (SUM(d.quantity) / (SUM(i.quantity) + SUM(d.quantity))) * 100,
+      2
+    ) AS defect_rate
+FROM defect d
+JOIN book b ON d.book_no = b.book_no
+JOIN inventory i ON d.book_no = i.book_no
+GROUP BY b.title;
+</select>
+
+<!--검수 중복 체크-->
+<select id="existsByOrderNo" parameterType="int" resultType="boolean">
+    SELECT COUNT(*) > 0
+    FROM quality_check <!-- defect 테이블에서 quality_check 테이블로 변경함 -->
+    WHERE order_no = #{orderNo}
+</select>
+
+<delete id="deleteByOrderNo" parameterType="int">
+    DELETE FROM quality_check WHERE order_no = #{orderNo}
+</delete>
+</mapper>

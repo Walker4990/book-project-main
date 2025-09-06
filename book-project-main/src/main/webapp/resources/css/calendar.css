@@ -1,0 +1,51 @@
+
+   #calendar {
+     max-width: 95%;
+     margin: 20px auto;
+     background: #ffffff;
+     padding: 15px;
+     border-radius: 10px;
+     box-shadow: 0px 3px 10px rgba(0,0,0,0.05);
+   }
+   .fc-toolbar-title { font-size: 22px; font-weight: bold; color: #333; }
+   .fc-button {
+     background-color: #001F54; /* NAVY */
+     color: white; border: none; border-radius: 5px;
+     padding: 6px 12px;
+   }
+   .fc-button:hover { background-color: #001437; }
+   .fc { font-size: 15px; }
+   .fc-event {
+     border: none !important;
+     border-radius: 5px !important;
+     color: #fff !important;
+     padding: 2px 4px;
+     font-size: 13px;
+   }
+
+/* 상세보기 모달 */
+.detail-body {
+  padding: 20px;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+
+.detail-table tr {
+  border-bottom: 1px solid #eee;
+}
+
+.detail-table td {
+  padding: 10px 8px;
+}
+
+.detail-table td:first-child {
+  width: 140px;
+  font-weight: bold;
+  color: #333;
+  background: #fafafa;
+}

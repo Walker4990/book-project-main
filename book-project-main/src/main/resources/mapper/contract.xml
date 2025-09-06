@@ -1,0 +1,365 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.contract.mapper.ContractMapper">
+
+<resultMap id="ContractMap" type="com.bk.project.contract.vo.Contract">
+    <id property="contractNo" column="contract_no" />
+    <result property="authorName" column="author_name" />
+    <result property="nationality" column="nationality" />
+    <result property="bookTitle" column="book_title" />
+    <result property="genre" column="genre" />
+    <result property="contractAmount" column="contract_amount" />
+    <result property="royaltyRate" column="royalty_rate" />
+    <result property="startDate" column="start_date" />
+    <result property="endDate" column="end_date" />
+    <result property="manuscriptDue" column="manuscript_due" />
+    <result property="printDate" column="print_date" />
+    <result property="publishDate" column="publish_date" />
+    <result property="gender" column="gender" />
+    <result property="birthDate" column="birth_date" />
+    <result property="price" column="price" />
+</resultMap>
+
+<!--계약 추가-->
+<insert id="newContract" parameterType="Contract"
+ useGeneratedKeys="true" keyProperty="contractNo">
+ INSERT INTO contract (
+    author_name, birth_date, gender, nationality,
+    book_title, genre, contract_amount, royalty_rate,
+    price, start_date, end_date, manuscript_due,
+    print_date, publish_date
+ ) VALUES (
+    #{authorName}, #{birthDate}, #{gender}, #{nationality},
+    #{bookTitle}, #{genre}, #{contractAmount}, #{royaltyRate},
+    #{price}, #{startDate}, #{endDate}, #{manuscriptDue},
+    #{printDate}, #{publishDate}
+ )
+</insert>
+
+<select id="allContract" parameterType="ContractPagingDTO" resultMap="ContractMap">
+	SELECT 
+		c.contract_no,
+		a.author_name,
+		a.gender,
+		a.birth_date,
+		c.nationality,
+		c.book_title,
+		c.genre,
+		c.contract_amount,
+		c.royalty_rate,
+		c.start_date,
+		c.end_date,
+		c.manuscript_due,
+		c.print_date,
+		c.publish_date,
+		c.price
+		
+	FROM contract c
+	LEFT JOIN author a ON a.contract_no = c.contract_no
+	where c.status = "ACTIVE"
+	LIMIT #{limit} OFFSET #{offset}
+</select>
+<!--계약 조회 페이징-->
+<select id="searchContract" parameterType="ContractPagingDTO" resultMap="ContractMap">
+	SELECT c.contract_no,
+           a.author_name,
+           a.gender,
+           a.birth_date,
+           c.nationality,
+           c.book_title,
+           c.genre,
+           c.contract_amount,
+           c.royalty_rate,
+           c.start_date,
+           c.end_date,
+           c.manuscript_due,
+           c.print_date,
+           c.publish_date,
+           c.price
+    FROM contract c
+   LEFT JOIN author a ON a.contract_no = c.contract_no
+    <where>
+        c.status = "ACTIVE"
+        <if test="keyword != null and keyword != ''">
+            AND (a.author_name LIKE CONCAT('%', #{keyword}, '%')
+                 OR CAST(c.contract_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+            AND c.end_date >= CURDATE()
+        </if>
+        <if test="keyword == null or keyword == ''">
+            AND c.end_date >= CURDATE()
+        </if>
+    </where>
+    LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!--계약조회 페이징-->
+<select id="countContract" parameterType="ContractPagingDTO" resultType="int">
+	SELECT COUNT(*) FROM contract c
+	LEFT JOIN author a ON a.contract_no = c.contract_no
+	<where>
+		<if test="keyword != null and keyword != ''">
+			(a.author_name LIKE CONCAT('%', #{keyword}, '%')
+			OR CAST(c.contract_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+			AND c.end_date >= CURDATE()
+		</if>
+		<if test="keyword == null or keyword == ''">
+			end_date >= CURDATE()
+		</if>
+	</where>
+</select>
+<select id="countAll" resultType="int">
+	SELECT COUNT(*) FROM contract c
+	LEFT JOIN author a ON a.contract_no = c.contract_no
+	where c.status = "ACTIVE"
+</select>
+<update id="updateContract" parameterType="Contract">
+	UPDATE contract 
+	<set>
+		<if test="bookTitle!=null">
+		book_title = #{bookTitle},
+		</if>
+		<if test="contractAmount!=null">
+		contract_amount = #{contractAmount},
+		</if>
+		<if test="royaltyRate!=null">
+		royalty_rate = #{royaltyRate},
+		</if>
+		<if test="endDate!=null">
+		end_date = #{endDate},
+		</if>
+		<if test="manuscriptDue!=null">
+		manuscript_due = #{manuscriptDue},
+		</if>
+		<if test="printDate!=null">
+		print_date = #{printDate},
+		</if>
+		<if test="publishDate!=null">
+		publish_date = #{publishDate},
+		</if>
+	<if test="genre!=null">
+		genre = #{genre}
+		</if>
+	</set>
+	WHERE contract_no = #{contractNo}
+</update>
+
+<select id="getContractByNo" parameterType="int" resultMap="ContractMap">
+	SELECT * FROM contract WHERE contract_no = #{contractNo}
+</select>
+
+<delete id="deleteContractByBook" parameterType="int">
+	 DELETE FROM book WHERE contract_no = #{contractNo};
+</delete>
+
+<delete id="deleteContractByAuthor" parameterType="int">
+ 	 DELETE FROM author WHERE contract_no = #{contractNo};
+</delete>
+<delete id="deleteContract" parameterType="int">
+	 DELETE FROM contract WHERE contract_no = #{contractNo}
+</delete>
+
+<delete id="deleteQualityCheckByBookNo" parameterType="int">
+    DELETE FROM quality_check WHERE book_no = #{bookNo}
+</delete>
+
+ <!-- 2. 만료 계약 자동 이동 -->
+<insert id="insertExpiredAuto">
+INSERT INTO contract_expired (
+  contract_no, author_no, author_name, nationality, gender, birth_date,
+  book_title, genre, publish_date, price,
+  contract_amount, royalty_rate, start_date, end_date,
+  manuscript_due, print_date, close_type, close_reason, expired_date
+)
+SELECT
+  c.contract_no, a.author_no, a.author_name, a.nationality, a.gender, a.birth_date,
+  b.title, b.genre, b.publish_date, b.price,
+  c.contract_amount, c.royalty_rate, c.start_date, c.end_date,
+  c.manuscript_due, c.print_date,
+  'EXPIRE', '자동 만료 이관', c.end_date
+FROM contract c
+JOIN book   b ON b.contract_no = c.contract_no   
+JOIN author a ON a.contract_no = c.contract_no
+LEFT JOIN contract_expired ce ON ce.contract_no = c.contract_no
+WHERE c.end_date IS NOT NULL
+  AND c.end_date <![CDATA[<]]> CURDATE()
+  AND ce.contract_no IS NULL;
+</insert>
+
+  <!-- 2) 원본 계약 상태 갱신 -->
+  <update id="markContractsExpired">
+    UPDATE contract c
+    JOIN contract_expired ce ON ce.contract_no = c.contract_no
+    SET c.status = 'EXPIRED'
+    WHERE c.end_date IS NOT NULL
+      AND c.end_date <![CDATA[<]]> CURDATE()
+     
+  </update>
+  <!--계약만료/해지로 이관된 계약 테이블에서 삭제 -->
+  <delete id="deleteExpiredContracts">
+    DELETE FROM contract
+    WHERE end_date <![CDATA[<]]> CURDATE()
+    AND contract_no NOT IN (SELECT contract_no FROM contract_expired)
+</delete>
+<!-- (테스트용)  단일 계약을 contract_expired로 이동 (중복 방지 & 이미 만료일 지난 것만) -->
+<insert id="insertExpiredByContractNo">
+   INSERT INTO contract_expired (
+    contract_no,
+    author_no,
+    author_name,
+    nationality,
+    gender,
+    birth_date,
+    book_title,
+    genre,
+    publish_date,
+    price,
+    contract_amount,
+    royalty_rate,
+    start_date,
+    end_date,
+    manuscript_due,
+    print_date,
+    close_type,
+    close_reason
+  )
+  SELECT
+    c.contract_no,
+    a.author_no,
+    a.author_name,
+    a.nationality,
+    a.gender,
+    a.birth_date,
+    b.title        AS book_title,
+    b.genre,
+    b.publish_date,
+    b.price,
+    c.contract_amount,
+    c.royalty_rate,
+    c.start_date,
+    c.end_date,
+    c.manuscript_due,
+    c.print_date,
+    #{closeType},
+    #{closeReason}
+  FROM contract c
+  LEFT JOIN author a ON a.contract_no = c.contract_no
+  LEFT JOIN book   b ON b.contract_no = c.contract_no
+  WHERE c.contract_no = #{contractNo}
+    AND NOT EXISTS (
+      SELECT 1 FROM contract_expired e WHERE e.contract_no = c.contract_no
+    )
+</insert>
+
+<!-- (테스트용) 단일 계약 상태 EXPIRED 표시 -->
+<update id="markContractExpiredByContractNo">
+  UPDATE contract
+  SET status = 'EXPIRED'
+  WHERE contract_no = #{contractNo}
+</update>
+
+<select id="expiredLists" parameterType="ContractPagingDTO">
+SELECT * FROM contract_expired
+LIMIT #{offset}, #{limit}
+</select>
+
+
+
+<!--만료된 계약 조회-->
+<select id="expiredList" parameterType="ContractPagingDTO" resultType="ContractExpiredDTO">
+  SELECT * FROM contract_expired
+  <where>
+    <choose>
+      <when test="select == 'authorName' and keyword != null and keyword != ''">
+        author_name LIKE CONCAT('%', #{keyword}, '%')
+      </when>
+      <when test="select == 'genre' and keyword != null and keyword != ''">
+        genre LIKE CONCAT('%', #{keyword}, '%')
+      </when>
+    </choose>
+  </where>
+ LIMIT #{offset}, #{limit}
+</select>
+
+
+<select id="total" resultType="int">
+SELECT COUNT(*) FROM contract_expired
+</select>
+
+
+
+<!--계약인세 찾기-->
+
+
+
+
+<select id="findRoyaltyRate" resultType="decimal">
+    SELECT IFNULL(c.royalty_rate, 0.0)
+    FROM contract c
+    JOIN book b ON c.contract_no = b.contract_no
+    WHERE b.book_no = #{bookNo}
+</select>
+
+<select id="confirmContract" parameterType="int">
+	SELECT * FROM contract WHERE book_title =#{bookTitle}
+</select>
+
+<!--계약된 도서 번호 찾기-->
+<select id="findBookNoByContract" resultType="int">
+    SELECT book_no
+    FROM book
+    WHERE contract_no = #{contractNo}
+</select>
+
+<!-- 계약 사항 달력에 띄우기-->
+<select id="selectContractDate" resultMap="ContractMap">
+  SELECT 
+     contract_no,
+     author_name,
+     book_title,
+     start_date,
+     publish_date,
+     end_date,
+     genre
+  FROM contract
+</select>
+
+<select id="selectContractDetail" parameterType="int" resultMap="ContractMap">
+  SELECT *
+    FROM contract
+    WHERE contract_no = #{contractNo}
+</select>
+
+
+<!--달력에서 계약사항 간의 추가하기-->
+<insert id="insertContractCalendar" parameterType="map"
+        useGeneratedKeys="true" keyProperty="contractNo"> 
+	   INSERT INTO contract (
+        author_name, book_title, start_date, end_date, birth_date, gender, nationality,
+        genre, contract_amount, royalty_rate, price, manuscript_due, print_date, publish_date
+    )
+    VALUES (
+        #{authorName}, #{bookTitle}, #{startDate}, #{endDate}, #{birthDate}, #{gender}, #{nationality},
+        #{genre}, #{contractAmount}, #{royaltyRate}, #{price}, #{manuscriptDue}, #{printDate}, #{publishDate}
+    )
+</insert>
+
+<select id="findContractNoByBookNo" parameterType="int" resultType="int">
+   SELECT c.contract_no
+  FROM contract c
+  JOIN book b ON b.book_no = #{bookNo}  
+  ORDER BY c.contract_no DESC
+  LIMIT 1
+</select>
+
+<select id="findEndDateByBookNo"
+        parameterType="int"
+        resultType="java.time.LocalDate">
+   SELECT c.end_date
+  FROM contract c
+  JOIN book b ON b.book_no = #{bookNo}  
+  ORDER BY c.contract_no DESC
+  LIMIT 1
+</select>
+
+
+
+</mapper>

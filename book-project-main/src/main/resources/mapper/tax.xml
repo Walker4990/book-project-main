@@ -1,0 +1,21 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.tax.mapper.TaxMapper">
+<resultMap id="taxMap" type="com.bk.project.tax.vo.Tax">
+<result property="transactionNo" column="tax_no"/>
+<result property="category" column="category"/>
+  <result property="relatedTable" column="related_table"/>
+  <result property="relatedNo" column="related_no"/>
+  <result property="taxAmount" column="tax_amount"/>
+  <result property="taxRate" column="tax_rate"/>
+  <result property="taxDate" column="tax_date"/>
+  <result property="description" column="description"/>
+</resultMap>
+
+<insert id="insertTax">
+	INSERT INTO tax(category, related_table, related_no, tax_amount, tax_rate, tax_date, description)
+	VALUES (#{category}, #{relatedTable}, #{relatedNo}, #{taxAmount}, #{taxRate}, #{taxDate}, #{description})
+</insert>
+
+
+
+</mapper>

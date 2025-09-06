@@ -1,0 +1,304 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.attendance.mapper.AttendanceMapper">
+
+<resultMap id="AttendanceMap" type="Attendance">
+<id property="attendanceNo" column="attendance_no" />
+<result property="memberNo" column="member_no" />
+<result property="date" column="date" />
+<result property="checkIn" column="check_in" />
+<result property="checkOut" column="check_out" />
+<result property="workingHours" column="working_hours" />
+<result property="overTime" column="over_time" />
+</resultMap>
+
+<resultMap id="DTOMap" type="AttendanceDTO">
+<id property="attendanceNo" column="attendance_no" />
+<result property="memberNo" column="member_no" />
+<result property="date" column="date" />
+<result property="name" column="name" />
+<result property="deptName" column="dept_name" />
+<result property="checkIn" column="check_in" />
+<result property="checkOut" column="check_out" />
+<result property="type" column="type" />
+<result property="attendance" column="attendance" />
+<result property="annual" column="annual" />
+</resultMap>
+
+<resultMap id="InfoMap" type="AttendanceInfo">
+<id property="attendanceInfoNo" column="attendanceInfo_no" />
+<result property="memberNo" column="member_no" />
+<result property="type" column="type" />
+<result property="vacation" column="vacation" />
+<result property="attendance" column="attendance" />
+<result property="Annual" column="Annual" />
+</resultMap>
+
+<resultMap id="SaveMap" type="AttendanceSave">
+<id property="saveNo" column="save_no" />
+<result property="memberNo" column="member_no" />
+<result property="month" column="month" />
+<result property="attendance" column="attendance" />
+<result property="vacation" column="vacation" />
+</resultMap>
+
+
+
+<!--info에 테이블 있는지 찾기-->
+<select id="searchInfo" parameterType="int" resultMap="InfoMap">
+SELECT * FROM attendance_info
+WHERE member_no = #{memberNo}
+</select>
+
+<!--info 테이블에 추가-->
+<insert id="addAttendanceInfo" parameterType="int">
+INSERT INTO attendance_info (member_no,type,vacation,attendance, annual)
+VALUES (#{memberNo},'출근전',0,0,0)
+</insert>
+
+
+
+
+
+<!--attendance에 테이블 있는지 찾기-->
+<select id="searchAttendance" parameterType="Attendance" resultMap="AttendanceMap">
+SELECT * FROM attendance
+WHERE member_no = #{memberNo}
+AND date = #{date}
+AND check_in IS NOT NULL
+</select>
+
+<!--attendance에 오늘 날짜의 출근시간 추가하기-->
+<insert id="addAttendance" parameterType="Attendance">
+INSERT INTO attendance (member_no,date,check_in)
+VALUES (#{memberNo},#{date}, #{checkIn})
+</insert>
+
+<!--Attendance에 오늘 날짜의 퇴근 시간 추가하기-->
+<update id="updateAttendance" parameterType="Attendance">
+UPDATE attendance
+SET check_out = #{checkOut}
+WHERE member_no = #{memberNo}
+AND date = #{date}
+</update>
+
+
+<!--출 / 퇴근을 안했을 시 Attendance 테이블에 추가-->
+<insert id="notCheck" parameterType="Attendance">
+INSERT INTO attendance(member_no,date)
+VALUES (#{memberNo},#{date})
+</insert>
+
+
+<!--출석 버튼 눌렀을 시 출근 횟수 +1-->
+<update id="checkin" parameterType="Attendance">
+UPDATE attendance_info
+SET attendance = attendance + 1,
+type = '출근'
+WHERE member_no = #{memberNo}
+</update>
+
+<!--출석 버튼 눌렀을 시 출근 횟수 +1-->
+<update id="late" parameterType="Attendance">
+UPDATE attendance_info
+SET attendance = attendance + 1,
+type = '지각'
+WHERE member_no = #{memberNo}
+</update>
+
+
+<!--퇴근 버튼 눌렀을 시 상태 '퇴근'-->
+<update id="checkout" parameterType="Attendance">
+UPDATE attendance_info
+SET type = '퇴근'
+WHERE member_no = #{memberNo}
+</update>
+
+
+
+
+
+<!--하루마다 Attendaance 업데이트-->
+
+<!--attendance에 테이블 있는지 찾기-->
+<select id="getInfo" resultMap="InfoMap">
+SELECT * FROM attendance_info
+</select>
+
+<!--attendance에 테이블 있는지 찾기-->
+<select id="getAttendance" parameterType="Attendance" resultMap="AttendanceMap">
+SELECT * FROM attendance
+WHERE date = #{date}
+</select>
+
+
+<!--attendance에 총 근무시간 넣기-->
+<update id="setTotalTime" parameterType="Attendance">
+UPDATE  attendance
+SET working_hours= #{workingHours}
+WHERE member_no = #{memberNo}
+AND date = #{date}
+</update>
+
+<!--퇴근 버튼 안누른 경우-->
+<update id="notCheckout" parameterType="Attendance">
+UPDATE attendance
+SET working_hours= #{workingHours},
+	check_out = #{checkOut}
+WHERE member_no = #{memberNo}
+AND date = #{date}
+</update>
+
+
+<!--초과 근무 업데이트-->
+<update id="overTime" parameterType="Attendance">
+UPDATE attendance
+SET over_time = #{overTime}
+WHERE member_no = memberNo
+AND date = #{date}
+</update>
+
+
+
+<!--전체 조회-->
+<select id="allAttendance" parameterType="AttendancePagingDTO"  resultMap="DTOMap">
+SELECT
+	a.date,
+    d.dept_name,
+    m.name ,
+    a.check_in,
+    a.check_out,
+    ai.type,
+    ai.attendance,
+    ai.annual
+FROM member m 
+JOIN attendance a USING(member_no)
+JOIN department d USING(dept_no)
+LEFT JOIN attendance_info ai USING(member_no)
+ORDER BY date
+LIMIT #{offset}, #{limit}
+</select>
+
+<!--출/퇴근 검색 조회-->
+<select id="searchAttendanceInfo" parameterType="AttendancePagingDTO" resultMap="DTOMap">
+SELECT
+	a.date,
+    d.dept_name,
+    m.name ,
+    a.check_in,
+    a.check_out,
+    ai.type,
+    ai.attendance,
+    ai.annual
+FROM member m 
+JOIN attendance a USING(member_no)
+JOIN department d USING(dept_no)
+LEFT JOIN attendance_info ai USING(member_no)
+WHERE m.name LIKE CONCAT('%', #{keyword}, '%')
+ORDER BY date
+LIMIT #{offset}, #{limit}
+</select>
+
+<select id="countAttendance" parameterType="AttendancePagingDTO" resultType="int">
+    SELECT COUNT(*)
+    FROM member m 
+    JOIN attendance a USING(member_no)
+    JOIN department d USING(dept_no)
+    LEFT JOIN attendance_info ai USING(member_no)
+    WHERE m.name LIKE CONCAT('%', #{keyword}, '%')
+    
+</select>
+
+
+<select id="total" resultType="int">
+SELECT COUNT(*) FROM attendance
+</select>
+
+<!--12시 업데이트-->
+<update id="resetStatus">
+UPDATE attendance_info
+SET type = '출근전'
+WHERE member_no = #{memberNo}
+</update>
+
+<!--한달간 출근 정보 저장-->
+<insert id="saveStatus" parameterType="AttendanceSave">
+INSERT INTO attendance_save(member_no,month,attendance, vacation)
+VALUES(#{memberNo},#{month},#{attendance}, #{vacation})
+</insert>
+
+
+<!--1일 업테이트-->
+<update id="monthStatus">
+UPDATE attendance_info
+SET attendance = 0,
+vacation = 0
+</update>
+
+<!--휴가일 경우 vacation + 1-->
+<update id="goVacation" parameterType="int" >
+UPDATE attendance_info
+SET vacation = vacation + 1
+WHERE member_no = #{MemberNo}
+</update>
+
+<!--출석 정보 관련 테스트 -->
+<delete id="deleteStatus">
+DELETE FROM attendance
+</delete>
+
+<!--사원 연차 개수 업데이트-->
+<update id="annualSet" parameterType="int">
+UPDATE attendance_info
+SET annual = annual + 1
+WHERE member_no = #{memberNo}
+</update>
+
+<!--사원 이상 연차 개수 업데이트-->
+<update id="annualSetFull" parameterType="int">
+UPDATE attendance_info
+SET annual = 15
+WHERE member_no = #{memberNo}
+</update>
+
+<!--info 가져오기-->
+<select id="annualInfo" parameterType="int" resultMap="InfoMap">
+SELECT * FROM attendance_info
+WHERE member_no = #{memberNo}
+</select>
+
+<!--연차 개수 휴가 날짜만큼 삭제-->
+<update id="minusAnnual" parameterType="AttendanceInfo">
+UPDATE attendance_info
+SET annual = annual - #{annual}
+WHERE member_no = #{memberNo}
+</update>
+
+
+<!--초과근무 시간 계산-->
+<update id="setOverTime" parameterType="Attendance">
+    UPDATE attendance
+    SET over_time = #{overTime}
+    WHERE attendance_no = #{attendanceNo}
+</update>
+
+<!--한 달 초과 근무 시간 조회-->
+<select id="findMonthlyOvertime" resultType="String">
+  SELECT SEC_TO_TIME(SUM(TIME_TO_SEC(over_time))) AS totalOvertime
+  FROM attendance
+  WHERE member_no = #{memberNo}
+    AND DATE_FORMAT(date, '%Y-%m') = #{yearMonth}
+</select>
+
+<!--휴가 아닌 사람 부르기-->
+<select id="getNotVacation" resultMap="InfoMap">
+SELECT * FROM attendance_info
+WHERE type != '휴가'
+</select>
+
+<!--휴가로 변경-->
+<update id="changeVacation" parameterType="int">
+UPDATE attendance_info
+SET type = '휴가'
+WHERE member_no = #{memberNo}
+</update>
+</mapper>

@@ -1,0 +1,282 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.marketing.mapper.MarketingMapper">
+<!--
+	private String eventNo;
+	private String name;
+	private LocalDate createAt;
+	private String createBy;
+	private String department;
+	private String eventType;
+	private String eventName;
+	private LocalDate duStart;
+	private LocalDate duEnd;
+	private int cost;
+-->
+
+<resultMap id="MarketingMap" type="Marketing">
+<result property="eventNo" column="event_no"/>
+<result property="companyName" column="company_name"/>
+<result property="createdAt" column="created_at"/>
+<result property="createdBy" column="created_by"/>
+<result property="department" column="department"/>
+<result property="eventType" column="event_type"/>
+<result property="eventName" column="event_name"/>
+<result property="durationStart" column="duration_start"/>
+<result property="durationEnd" column="duration_end"/>
+<result property="cost" column="cost"/>
+</resultMap>
+
+<resultMap id="MarketingExpiredMap" type="MarketingExpired">
+<result property="eventNo" column="event_no"/>
+<result property="companyName" column="company_name"/>
+<result property="createdAt" column="created_at"/>
+<result property="createdBy" column="created_by"/>
+<result property="department" column="department"/>
+<result property="eventType" column="event_type"/>
+<result property="eventName" column="event_name"/>
+<result property="durationStart" column="duration_start"/>
+<result property="durationEnd" column="duration_end"/>
+<result property="cost" column="cost"/>
+<result property="closedAt" column="closed_at"/>
+</resultMap>
+
+
+
+
+<!-- 외주업체 등록-->
+<insert id="newMarketing" parameterType="Marketing"
+useGeneratedKeys="true" keyProperty="eventNo">
+INSERT INTO marketing_event(company_name,created_at,created_by,department,event_type,
+							event_name,duration_start,duration_end,cost )
+VALUES(#{companyName},#{createdAt}, #{createdBy},#{department},#{eventType},#{eventName},#{durationStart},#{durationEnd},#{cost})							
+</insert>
+
+
+<!-- 외주업체 수정-->
+<update id="updateMarketing" parameterType="Marketing">
+UPDATE marketing_event
+<set>
+	<if test="companyName !=null">
+	company_name = #{companyName},
+	</if>
+	<if test="createdAt !=null">
+	created_at = #{createdAt},
+	</if>
+	<if test="createdBy !=null">
+	created_by = #{createdBy},
+	</if>
+	<if test="department !=null">
+	department = #{department},
+	</if>
+	<if test="eventType !=null">
+	event_type = #{eventType},
+	</if>
+	<if test="eventName !=null">
+	event_name = #{eventName},
+	</if>
+	<if test="durationStart !=null">
+	duration_start = #{durationStart},
+	</if>
+	<if test="durationEnd !=null">
+	duration_end = #{durationEnd},
+	</if>
+	<if test="cost !=null">
+	cost = #{cost}
+	</if>
+</set>
+WHERE event_no = #{eventNo}
+</update>
+
+<select id="getMarketingByNo" parameterType="int" resultMap="MarketingMap">
+    SELECT * FROM marketing_event WHERE event_no = #{eventNo}
+</select>
+
+<!--외주업체 삭제-->
+<delete id="deleteMarketing" parameterType="Marketing">
+DELETE FROM marketing_event
+WHERE event_no = #{eventNo}
+</delete>
+
+
+
+ 
+  <!--외주 업체 선택조회-->
+ <select id="searchMarketing" parameterType="com.bk.project.marketing.dto.PagingDTO"
+        resultType="com.bk.project.marketing.dto.MarketingDTO">
+    SELECT event_no       AS eventNo,
+           company_name   AS companyName,
+           created_at     AS createdAt,
+           created_by     AS createdBy,
+           department,
+           event_type     AS eventType,
+           event_name     AS eventName,
+           duration_start AS durationStart,
+           duration_end   AS durationEnd,
+           cost
+    FROM marketing_event
+    <where>
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="select == 'companyName'">
+                    company_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="select == 'eventName'">
+                    event_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <otherwise>
+                    (company_name LIKE CONCAT('%', #{keyword}, '%') 
+                     OR event_name LIKE CONCAT('%', #{keyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </where>
+    LIMIT #{limit} OFFSET #{offset}
+</select>
+  
+  <!--외주업체 전체 조회-->
+ <select id="allMarketing" parameterType="PagingDTO" resultMap="MarketingMap">
+		SELECT * FROM marketing_event 
+		<where>
+		<if test="keyword != null">
+		company_name LIKE CONCAT('%', #{keyword}, '%')
+		OR event_name LIKE CONCAT('%', #{keyword}, '%')
+		OR created_by LIKE CONCAT('%', #{keyword}, '%')
+		</if>
+		</where> 
+		LIMIT #{offset}, #{limit}
+</select>
+
+
+
+
+	
+	<!--페이징 처리용-->
+<select id="total" parameterType="PagingDTO" resultType="int">
+    SELECT COUNT(*) 
+    FROM marketing_event
+    <where>
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="select == 'companyName'">
+                    company_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="select == 'eventName'">
+                    event_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <otherwise>
+                    (company_name LIKE CONCAT('%', #{keyword}, '%') 
+                     OR event_name LIKE CONCAT('%', #{keyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </where>
+</select>
+  
+  <select id="totalAll" resultType="int">
+   SELECT COUNT(*) FROM marketing_event
+   </select>
+  
+<select id="checkManager" parameterType="Marketing" resultMap="com.bk.project.member.mapper.MemberMapper.MemberResultMap">
+SELECT  m.name,
+        d.dept_name
+    FROM member m
+   JOIN department d ON m.dept_no = d.dept_no
+    WHERE m.name = #{createdBy}
+    AND dept_name = #{department}
+   
+</select>
+<select id="findExpiredEventNos" resultType="int">
+ <![CDATA[ SELECT event_no
+  FROM marketing_event
+  WHERE duration_end <= CURRENT_DATE]]>
+</select>
+
+
+
+<insert id="syncExpiredEvents" parameterType="map">
+  INSERT INTO marketing_expired (
+    event_no, company_name, created_at, created_by, department, event_type,
+    event_name, duration_start, duration_end, cost, closed_at
+  )
+  SELECT 
+    m.event_no, m.company_name, m.created_at, m.created_by, m.department, m.event_type,
+    m.event_name, m.duration_start, m.duration_end, m.cost, #{closedAt}
+  FROM marketing_event m
+  WHERE m.event_no = #{eventNo}
+    AND NOT EXISTS (
+      SELECT 1 FROM marketing_expired e WHERE e.event_no = m.event_no
+    )
+</insert>
+
+<select id="getAllExpired"  resultMap="MarketingMap">
+<![CDATA[
+SELECT * FROM marketing_event 
+WHERE duration_end <= CURRENT_DATE
+ ]]>
+</select>
+
+
+<select id="AllfindExpired" resultType="Marketing">
+	SELECT * FROM marketing_event 
+	<![CDATA[
+        WHERE duration_end <= CURRENT_DATE
+    ]]>
+</select>
+
+
+ <!-- 만료 마케팅 전체 조회(페이징 처리) -->
+<select id="allMarketingExpiredList" parameterType="PagingDTO" resultMap="MarketingExpiredMap">
+    SELECT *
+    FROM marketing_expired
+    <where>
+        <if test="keyword != null and keyword != ''">
+            (company_name LIKE CONCAT('%', #{keyword}, '%')
+             OR event_name LIKE CONCAT('%', #{keyword}, '%')
+             OR created_by LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </where>
+    LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 만료 마케팅 검색 조회 -->
+<select id="searchMarketingExpired" parameterType="PagingDTO" resultMap="MarketingExpiredMap">
+    SELECT *
+    FROM marketing_expired
+    <where>
+        <if test="keyword != null and keyword != ''">
+            <choose>
+                <when test="select == 'companyName'">
+                    company_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <when test="select == 'eventName'">
+                    event_name LIKE CONCAT('%', #{keyword}, '%')
+                </when>
+                <otherwise>
+                    (company_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR event_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR created_by LIKE CONCAT('%', #{keyword}, '%'))
+                </otherwise>
+            </choose>
+        </if>
+    </where>
+    LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 만료 마케팅 조건 카운트 -->
+<select id="countMarketingExpired" parameterType="PagingDTO" resultType="int">
+    SELECT COUNT(*)
+    FROM marketing_expired
+    <where>
+        <if test="keyword != null and keyword != ''">
+            (company_name LIKE CONCAT('%', #{keyword}, '%')
+             OR event_name LIKE CONCAT('%', #{keyword}, '%')
+             OR created_by LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </where>
+</select>
+
+<!-- 만료 마케팅 전체 카운트 -->
+<select id="countAllMarketingExpired" resultType="int">
+    SELECT COUNT(*) FROM marketing_expired
+</select>
+</mapper>

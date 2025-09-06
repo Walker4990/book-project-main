@@ -1,0 +1,93 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.request.mapper.RequestMapper">
+
+<resultMap id="RequestMap" type="Request">
+<id property="requestNo" column="request_no"/>
+<result property="title" column="title"/>
+<result property="content" column="content"/>
+<result property="filePath" column="file_path"/>
+<result property="memberNo" column="member_no"/>
+<result property="memberName" column="member_name"/>
+<result property="approverNo" column="approver_no"/>
+<result property="approverName" column="approver_name"/>
+<result property="writeDate" column="write_date"/>
+<result property="approvalStatus" column="approval_status"/>
+</resultMap>
+
+
+<insert id="newRequest" parameterType="Request" useGeneratedKeys="true" keyProperty="memberNo">
+    INSERT INTO request (title, content, file_path, member_no, member_name, approver_no, approver_name)
+    VALUES (#{title}, #{content}, #{filePath}, #{memberNo}, #{memberName}, #{approverNo}, #{approverName})
+</insert>
+
+<!-- 특정 품의서 검색 조회 -->
+<select id="searchRequest" parameterType="RequestPagingDTO" resultMap="RequestMap">
+SELECT * FROM request
+WHERE title LIKE CONCAT('%', #{keyword}, '%')
+OR member_name LIKE CONCAT('%', #{keyword}, '%')
+OR approval_status LIKE CONCAT('%', #{keyword}, '%')
+ LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 멤버에서 이름 가져오기 -->
+<select id="memberName" parameterType="int" resultType="Member">
+SELECT name
+FROM member
+WHERE member_no = #{memberNo}
+</select>
+
+<!-- 모든 품의서 조회 -->
+ <select id="allRequest" parameterType="RequestPagingDTO" resultMap="RequestMap">
+    SELECT * FROM request
+    LIMIT #{limit} OFFSET #{offset}
+ </select>
+ 
+ <select id="countRequest" parameterType="RequestPagingDTO" resultType="int">
+ SELECT COUNT(*) FROM request 
+ <where>
+		<if test="keyword != null and keyword != ''">
+		(
+			title LIKE CONCAT('%', #{keyword}, '%')
+			OR member_name LIKE CONCAT('%', #{keyword}, '%')
+			OR approval_status LIKE CONCAT('%', #{keyword}, '%')
+		)
+		</if>
+	</where>
+ </select>
+
+ <select id="selectRequest" resultMap="RequestMap">
+    SELECT * FROM request
+    WHERE request_no = #{requestNo}
+    
+ </select>
+
+<!-- 품의서 승인 상태 변경 -->
+ <update id="updateApprovalStatus" parameterType="int">
+    UPDATE request 
+    SET approval_status = '승인'
+    WHERE request_no = #{requestNo}
+ </update>
+ 
+ <!-- 품의서 승인 상태 변경 -->
+ <update id="notApproveRequest" parameterType="int">
+    UPDATE request 
+    SET approval_status = '반려'
+    WHERE request_no = #{requestNo}
+ </update>
+ 
+ 
+
+<!-- 품의서 내용 변경 -->
+ <update id="updateRequest" parameterType="Request">
+    UPDATE request
+    SET title = #{title}, content = #{content}
+    WHERE request_no = #{requestNo}
+ </update>
+
+<!-- 품의서 삭제 -->
+ <delete id="deleteRequest" parameterType="int" >
+  DELETE FROM request
+  WHERE request_no = #{requestNo}
+ </delete>
+  
+</mapper>

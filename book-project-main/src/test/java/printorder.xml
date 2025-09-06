@@ -1,0 +1,95 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.printorder.mapper.PrintOrderMapper">
+
+<resultMap id="PrintOrderMap" type="PrintOrder">
+    <id property="orderNo" column="order_no" />
+    <result property="orderDate" column="order_date" />
+    <result property="category" column="category" />
+    <result property="manager" column="manager" />
+    <result property="deliveryDate" column="delivery_date" />
+    <result property="issueDate" column="issue_date" />
+    
+    <!-- 상세 리스트를 가져올 서브 셀렉트 연결 -->
+    <collection property="detailList"
+                ofType="PrintOrderDetailVO"
+                column="order_no"
+                select="getPrintOrderDetailByNo"/>
+</resultMap>
+<!--발주 정보 등록-->
+<insert id="newPrintOrder" parameterType="PrintOrder" useGeneratedKeys="true" keyProperty="orderNo">
+  INSERT INTO print_order (
+    order_date, category, manager, delivery_date, issue_date
+  ) VALUES (
+    #{orderDate}, #{category}, #{manager}, #{deliveryDate}, #{issueDate}
+  )
+</insert>
+
+<!--상세 발주 정보 등록-->
+<insert id="newPrintOrderDetail" parameterType="PrintOrderDetailVO">
+	INSERT INTO print_order_detail (
+		order_no, book_no, product_name, regular_price, quantity, promotion_quantity)
+	VALUES (#{orderNo}, #{bookNo}, #{productName}, #{regularPrice}, #{quantity}, #{promotionQuantity})
+</insert>
+<!--발주 정보 조회-->
+<select id="allPrintOrder" resultMap = "PrintOrderMap">
+	SELECT * FROM print_order
+</select>
+<!--발주 정보 검색-->
+<select id="searchPrintOrder" parameterType="PrintOrderSearchDTO" resultMap = "PrintOrderMap">
+	SELECT * FROM print_order 
+	<where>
+		<choose>
+		<when test="select.equals('all') and keyword!=null and keyword !=''">
+		(product_name LIKE CONCAT('%', #{keyword}, '%') 
+				OR CAST(order_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+		</when>
+		<when test="select.equals('productName') and keyword!=null and keyword !=''">
+		product_name LIKE CONCAT ('%', #{keyword}, '%')
+		</when>
+		<when test="select.equals('orderNo') and keyword!=null and keyword !=''">
+		CAST(order_no AS CHAR) LIKE CONCAT ('%', #{keyword}, '%')
+		</when>
+		
+		</choose>
+	</where>
+</select>
+<!--발주 정보 수정-->
+<update id="updatePrintOrder" parameterType="PrintOrderSearchDTO">
+   UPDATE print_order
+    SET manager = #{manager},
+        issue_date = #{issueDate},
+        delivery_date = #{deliveryDate}
+    WHERE order_no = #{orderNo}
+</update>
+<!--상세 발주 정보 수정-->
+<update id="updatePrintOrderDetail" parameterType="PrintOrderSearchDTO">
+  UPDATE print_order_detail
+    SET 
+        product_name = #{productName},
+        quantity = #{quantity},
+        promotion_quantity = #{promotionQuantity}
+    WHERE order_no = #{orderNo}
+</update>
+<!--발주 정보 삭제-->
+<delete id="deletePrintOrder" parameterType="int">
+	DELETE FROM print_order WHERE order_no = #{orderNo}
+</delete>
+<!--발주 상세 정보 삭제-->
+<delete id="deletePrintOrderDetail">
+    DELETE FROM print_order_detail WHERE order_no = #{orderNo}
+</delete>
+<!--발주 번호 검색 -> 수정 시 필요-->
+<select id="getPrintOrderByNo" parameterType="int" resultMap="PrintOrderMap">
+	SELECT * FROM print_order WHERE order_no = #{orderNo}
+</select>
+<!--상세 발주 번호 검색 -> 수정시 필요-->
+<select id="getPrintOrderDetailByNo" parameterType="int" resultType="com.bk.project.printorder.vo.PrintOrderDetailVO">
+  SELECT * FROM print_order_detail WHERE order_no = #{orderNo}
+</select>
+<!--발주 변경 시 재고 수량 변화-->
+<update id="updateInvenQuantity" parameterType="PrintOrderDetailVO">
+	UPDATE inventory 
+	SET quantity = quantity +#{editQuantity}
+	WHERE book_no = #{bookNo}
+</update>
+</mapper>

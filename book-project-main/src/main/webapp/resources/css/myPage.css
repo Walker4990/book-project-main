@@ -1,0 +1,139 @@
+:root {
+  --bg: #f1f7ff;
+  --card: #ffffff;
+  --muted: #fafafa;
+  --line: #f4f4f4;
+  --ink: #2f2f2f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  font-family: "Segoe UI", sans-serif;
+  color: var(--ink);
+
+}
+
+.profileCard {
+  width: min(640px, 80%);
+  margin: 40px auto;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  outline: 1px solid var(--line);
+  padding: 32px 28px;
+  
+}
+
+.profileHead {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.title h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 800;
+}
+.title .dept {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+.title .sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #888;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 버튼 */
+.btn {
+  height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--line);
+  color: #333;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.btn:hover {
+  background: #e8e8e8;
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: var(--muted);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  display: inline-grid;
+  place-items: center;
+  color: #333;
+}
+.btn-outline:hover {
+  background: #f2f2f2;
+}
+
+/* 정보 그리드 */
+.info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px 18px;
+  margin: 0;
+}
+.info .myInfo {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  align-items: center;
+  background: var(--muted);
+  padding: 10px 12px;
+  border-radius: 10px;
+  outline: 1px solid var(--line);
+}
+.info dt {
+  margin: 0;
+  font-weight: 700;
+  color: #555;
+}
+.info dd {
+  margin: 0;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 반응형 */
+@media (max-width: 720px) {
+  .info {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

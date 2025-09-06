@@ -1,0 +1,94 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.financial.mapper.FinancialMapper">
+<resultMap id="financialMap" type="com.bk.project.financial.vo.Financial">
+<result property="transactionNo" column="transaction_no"/>
+  <result property="type" column="type"/>
+  <result property="category" column="category"/>
+  <result property="relatedNo" column="related_no"/>
+  <result property="totalPrice" column="total_price"/>
+  <result property="transactionDate" column="transaction_date"/>
+  <result property="description" column="description"/>
+</resultMap>
+
+<insert id="insertFinance" parameterType="Financial" useGeneratedKeys = "true" keyProperty = "transactionNo">
+	INSERT INTO finance_transaction(type, category, related_no, total_price, transaction_date, description)
+	VALUES (#{type}, #{category}, #{relatedNo}, #{totalPrice}, #{transactionDate}, #{description})
+</insert>
+
+<select id="revenueSelect" resultMap="financialMap">
+	SELECT * FROM finance_transaction 
+	WHERE type= 'REVENUE'
+	LIMIT #{offset}, #{limit};
+</select>
+<select id="revenueCount" resultType="int">
+  SELECT COUNT(*) FROM finance_transaction WHERE type = 'REVENUE'
+</select>
+
+
+<select id="expenseSelect" resultMap="financialMap">
+	SELECT * FROM finance_transaction 
+	WHERE type= 'EXPENSE'
+	LIMIT #{offset}, #{limit};
+</select>
+<select id="expenseCount" resultType="int">
+  SELECT COUNT(*) FROM finance_transaction WHERE type = 'EXPENSE'
+</select>
+
+<select id="total" parameterType="String" resultType="int">
+	SELECT COUNT(*) FROM finance_transaction
+	<where>
+		<if test="keyword != null">
+			title LIKE CONCAT("%", #{keyword}, '%')
+		</if>
+	</where>
+</select>
+<!--월별 손익-->
+<select id="getMonthlyFinance" resultType="map">
+      SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS month,
+           SUM(CASE WHEN type = 'REVENUE' THEN ABS(total_price) ELSE 0 END) AS revenue,
+           SUM(CASE WHEN type = 'EXPENSE' THEN ABS(total_price) ELSE 0 END) AS expense
+    FROM finance_transaction
+    GROUP BY month
+    ORDER BY month
+</select>
+
+<!--수입 월별 검색(페이징 계산용)-->
+<select id="revenueCountByMonth" parameterType="com.bk.project.financial.dto.PagingDTO" resultType="int">
+	SELECT COUNT(*) FROM finance_transaction
+	WHERE type='REVENUE'
+	AND DATE_FORMAT(transaction_date, '%Y-%m') = #{isMonth}
+	
+</select>
+<!--수입 월별 검색-->
+<select id="revenueSelectByMonth" parameterType="com.bk.project.financial.dto.PagingDTO" resultType="Financial">
+	SELECT * FROM finance_transaction
+	WHERE type='REVENUE'
+	AND DATE_FORMAT(transaction_date, '%Y-%m') = #{revenuepaging.isMonth}
+	ORDER BY transaction_date DESC
+	LIMIT #{revenuepaging.offset}, #{revenuepaging.limit}
+</select>
+
+<!--지출 월별 검색(페이징 계산용)-->
+<select id="expenseCountByMonth" parameterType="com.bk.project.financial.dto.PagingDTO" resultType="int">
+	SELECT COUNT(*) FROM finance_transaction
+	WHERE type='EXPENSE'
+	AND DATE_FORMAT(transaction_date, '%Y-%m') = #{month}
+	
+</select>
+<!--지출 월별 검색-->
+<select id="expenseSelectByMonth" parameterType="com.bk.project.financial.dto.PagingDTO" resultType="Financial">
+	SELECT * FROM finance_transaction
+	WHERE type='EXPENSE'
+	AND DATE_FORMAT(transaction_date, '%Y-%m') = #{month}
+	ORDER BY transaction_date DESC
+	LIMIT #{expensepaging.offset}, #{expensepaging.limit}
+</select>
+<select id="totals" parameterType="String" resultType="int">
+	SELECT COUNT(*) FROM finance_transaction
+	<where>
+		<if test="keyword != null">
+			title LIKE CONCAT("%", #{keyword}, '%')
+		</if>
+	</where>
+</select>
+</mapper>

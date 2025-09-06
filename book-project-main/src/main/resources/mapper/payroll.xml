@@ -1,0 +1,59 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.payroll.mapper.PayrollMapper">
+
+
+<insert id="insertPayroll" parameterType="com.bk.project.payroll.vo.Payroll">
+  INSERT INTO payroll (member_no, salary_no, salary_date, pay_amount, finance_transaction_no)
+  VALUES (#{memberNo}, #{salaryNo}, #{salaryDate}, #{payAmount}, #{financeTransactionNo})
+</insert>
+
+<!-- 해당 달 급여 지급 중복 체크 /  -->
+<select id="countPayrollThisMonth" resultType="int">
+     SELECT COUNT(*) 
+    FROM payroll
+    WHERE DATE_FORMAT(salary_date, '%Y-%m') = #{yearMonth}
+</select>
+
+<!--급여 지급 시 급여 등록 최신 기록 가져오기-->
+<select id="getLatestSalaryList" parameterType="PayrollPagingDTO" resultType="com.bk.project.salary.vo.Salary">
+  SELECT 
+    t.salary_no AS salaryNo,
+    t.member_no AS memberNo,
+    m.name AS name,
+    m.dept_no AS deptNo,
+    t.base_salary AS baseSalary,
+    t.position_allowance AS positionAllowance,
+    t.meal_allowance AS mealAllowance,
+    t.ot_rate AS otRate,
+    t.tax AS tax,
+    t.effective_date AS effectiveDate,
+    t.total_salary AS totalSalary,
+    t.bonus AS bonus
+FROM (
+    SELECT s.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.member_no
+               ORDER BY s.effective_date DESC, s.salary_no DESC
+           ) AS rn
+    FROM salary s
+) t
+JOIN member m ON m.member_no = t.member_no
+WHERE t.rn = 1
+ORDER BY t.member_no ASC
+LIMIT #{limit} OFFSET #{offset}
+</select>
+<select id='countAll' parameterType="PayrollPagingDTO" resultType="int">
+SELECT COUNT(*) 
+FROM (
+    SELECT s.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.member_no
+               ORDER BY s.effective_date DESC, s.salary_no DESC
+           ) AS rn
+    FROM salary s
+) t
+JOIN member m ON m.member_no = t.member_no
+WHERE t.rn = 1;
+</select>
+
+</mapper>

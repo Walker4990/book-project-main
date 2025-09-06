@@ -1,0 +1,11 @@
+  #qcDetailBody td {
+    padding: 8px 12px;
+    text-align: center;
+  }
+  #qcDetailBody input, 
+  #qcDetailBody select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  

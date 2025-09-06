@@ -1,0 +1,96 @@
+/*shipment CSS*/
+/*도서 목록 조회*/
+
+.regShipment  {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.row {
+	display: flex;
+	justify-content: left;
+	gap: 10px;
+	margin-top: 30px;
+	grid-column: 1 / -1;
+}
+
+.outtableWrapper {
+	grid-column: 1 / -1;
+}
+
+#outTable {
+	width: auto;               /* 100% -> auto */
+	table-layout: auto;        /* fixed -> auto (내용 기준 칼럼폭) */
+	border-collapse: collapse;
+	font-size: 14px;
+  }
+
+  #outTable th,
+  #outTable td{
+    white-space: nowrap;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  #addRow {
+	background: #ccc;
+	color: white;
+	font-weight: 600;
+	border: none;
+	padding: 10px 28px;
+	border-radius: 8px;
+	cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  #addRow:hover {
+    background: #523d2d;
+  }
+  #shipmentModal input[type="text"],
+  #shipmentModal input[type="number"],
+  #shipmentModal select {
+    width: 120px;   /* 원하는 값으로 조정 (예: 150px, 200px) */
+    min-width: 100px;
+    padding: 6px 8px;
+    box-sizing: border-box;
+  }
+  .modal-content {
+    max-width: 825px;  /* 기본 500~600px → 넓혀줌 */
+    width: 95%;        /* 반응형: 화면 비율로 */
+  }
+  .shipment-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 2fr 2fr; /* 단가:짧게, 거래처/운송사: 넓게 */
+    gap: 10px; /* 칸 사이 간격 */
+    margin-bottom: 10px;
+  }
+
+  .shipment-row input,
+  .shipment-row select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  #shipmentTable {
+    width: 100%;
+    table-layout: fixed; /* 칸 비율 고정 */
+  }
+
+  #shipmentTable th,
+  #shipmentTable td {
+    padding: 8px;
+    text-align: center;
+  }
+  #shipmentTable th:nth-child(1), 
+  #shipmentTable td:nth-child(1) { width: 22%; }  /* 도서 */
+  #shipmentTable th:nth-child(2), 
+  #shipmentTable td:nth-child(2) { width: 10%; }  /* 출고 수량 */
+  #shipmentTable th:nth-child(3), 
+  #shipmentTable td:nth-child(3) { width: 10%; }  /* 단가 */
+  #shipmentTable th:nth-child(4), 
+  #shipmentTable td:nth-child(4) { width: 12%; }  /* 출고 위치 */
+  #shipmentTable th:nth-child(5), 
+  #shipmentTable td:nth-child(5) { width: 23%; }  /* 거래처 */
+  #shipmentTable th:nth-child(6), 
+  #shipmentTable td:nth-child(6) { width: 23%; }  /* 운송사 */

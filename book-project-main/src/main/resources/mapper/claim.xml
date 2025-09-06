@@ -1,0 +1,139 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.claim.mapper.ClaimMapper">
+
+<resultMap id="ClaimMap" type="Claim">
+<id property="claimNo" column="claim_no"/>
+    <result property="partnerNo" column="partner_no"/>
+    <result property="name" column="name"/>
+    <result property="bookNo" column="book_no"/>
+    <result property="title" column="title"/>
+    <result property="price" column="price"/>
+    <result property="quantity" column="quantity"/>
+    <result property="totalAmount" column="total_amount"/>
+    <result property="defectType" column="defect_type"/>
+    <result property="recall" column="recall"/>
+    <result property="recallStatus" column="recall_status"/>
+    <result property="content" column="content"/>
+    <result property="claimDate" column="claim_date"/>
+</resultMap>
+
+<!-- 신규 클레임 등록 -->
+<insert id="newClaim" parameterType="Claim" useGeneratedKeys="true" keyProperty="bookNo">
+     INSERT INTO claim(
+      partner_no, name, book_no, title, price, quantity,
+      total_amount, defect_type, `recall`, recall_status,
+      content, claim_date
+    )
+    VALUES(
+      #{partnerNo}, #{name}, #{bookNo}, #{title}, #{price}, #{quantity},
+      #{totalAmount}, #{defectType}, #{recall}, #{recallStatus},
+      #{content}, #{claimDate}
+    )
+</insert>
+
+<!-- 업체명 가져오기 -->
+<select id="selectPartner" parameterType="int" resultType="String">
+SELECT name
+FROM partner
+WHERE partner_no = #{partnerNo}
+</select>
+
+<!-- 도서 목록 가져오기 -->
+<select id="cSelectBook" parameterType="int" resultType="Book">
+SELECT title, price 
+FROM book
+WHERE book_no = #{bookNo}
+</select>
+
+<!-- 특정 클레임 검색 조회 -->
+<select id="searchClaim" parameterType="ClaimPagingDTO"  resultMap="ClaimMap">
+SELECT   
+	 claim_no, partner_no, name, book_no, title,
+      price, quantity, total_amount,
+      defect_type, `recall`, recall_status,
+      content, claim_date
+FROM claim
+<where>
+	<choose>
+		<when test="select == 'name' and keyword != null and keyword != ''">
+			name LIKE CONCAT('%',#{keyword},'%')
+		</when>
+		<when test="select == 'title' and keyword != null and keyword != ''">
+			title LIKE CONCAT('%',#{keyword},'%')
+		</when>
+	</choose>
+</where>
+LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 전체 클레임 조회 -->
+<select id="allClaim" resultMap="ClaimMap">
+SELECT   claim_no, partner_no, name, book_no, title,
+      price, quantity, total_amount,
+      defect_type, `recall`, recall_status,
+      content, claim_date
+FROM claim
+LIMIT #{limit} OFFSET #{offset}
+</select>
+<!--페이징 처리-->
+<select id="countClaim" parameterType="ClaimPagingDTO" resultType="int">
+SELECT COUNT(*) FROM claim
+<where>
+	<choose>
+		<when test="select == 'name' and keyword != null and keyword != ''">
+			name LIKE CONCAT('%',#{keyword},'%')
+		</when>
+		<when test="select == 'title' and keyword != null and keyword != ''">
+			title LIKE CONCAT('%',#{keyword},'%')
+		</when>
+	</choose>
+</where>
+</select>
+
+<select id="countAll" parameterType="ClaimPagingDTO" resultType="int">
+	SELECT COUNT(*) FROM claim
+	LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<select id="selectClaim" parameterType="int" resultMap="ClaimMap">
+ SELECT 
+      claim_no, partner_no, name, book_no, title,
+      price, quantity, total_amount,
+      defect_type, `recall` AS recall_value, recall_status,
+      content, claim_date
+    FROM claim
+    WHERE claim_no = #{claimNo}
+</select>
+
+<!-- 기존 클레임 내용 수정 -->
+<update id="updateClaim" parameterType="Claim">
+  UPDATE claim
+  SET quantity      = #{quantity},
+      total_amount  = #{totalAmount},
+      defect_type   = #{defectType},
+      content       = #{content},
+      recall        = #{recall},
+      recall_status = #{recallStatus},
+      claim_date    = #{claimDate}
+  WHERE claim_no    = #{claimNo}
+</update>
+
+<!-- 클레임 수정 : 회수 상태 '완료'로 수정 후 수정 완료 버튼 누르면 재고 테이블에 반영하기 -->
+<insert id="returnInven">
+   INSERT INTO inventory (
+      book_no, quantity, location, end_contract_date,
+      action_type, action_date, reason
+    )
+    VALUES(
+      #{bookNo}, #{quantity}, #{location}, #{claimDate},
+      #{actionType}, #{actionDate}, #{reason}
+    )
+    </insert>
+
+<!-- 데이터 삭제 -->
+<delete id="deleteClaim" parameterType="int">
+  DELETE FROM claim
+    WHERE claim_no = #{claimNo}
+</delete>
+
+</mapper>

@@ -1,0 +1,22 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.royalty.mapper.RoyaltyMapper">
+<resultMap id="RoyaltyMap" type="com.bk.project.royalty.vo.Royalty">
+<result property="royaltyNo" column="royalty_no"/>
+  <result property="contractNo" column="contract_no"/>
+  <result property="bookNo" column="book_no"/>
+    <result property="authorNo" column="author_no"/>
+  <result property="totalSales" column="total_sales"/>
+  <result property="royaltyRate" column="royalty_rate"/>
+  <result property="royaltyPrice" column="royalty_price"/>
+  <result property="royaltyDate" column="royalty_date"/>
+    <result property="description" column="description"/>
+</resultMap>
+<insert id="insertRoyalty">
+	INSERT INTO royalty(contract_no, book_no, author_no, total_sales, royalty_rate, royalty_price, royalty_date, description)
+	VALUES (#{contractNo}, #{bookNo}, #{authorNo}, #{totalSales}, #{royaltyRate}, #{royaltyPrice}, #{royaltyDate}, #{description})
+</insert>
+
+<delete id="deleteRoyaltyByBookNo" parameterType="int">
+DELETE FROM royalty WHERE contract_no = #{contractNo}
+</delete>
+</mapper>

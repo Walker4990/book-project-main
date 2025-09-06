@@ -1,0 +1,98 @@
+/* modal-style.css */
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;      /* 가로 더 길게 */
+  height: 600px;     /* 세로 더 길게 */
+  max-height: 600px; /* max-height도 세로에 맞게 */
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+  overflow-y: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  box-sizing: border-box;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.modal.show {
+  display: block;                   /* 보여줄 때 */
+  transform: translate(-50%, -50%); /* 중앙 정렬 위치로 이동 */
+  opacity: 1;                      /* 불투명 */
+}
+
+#closeModal {
+  float: right;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.3s ease;
+}
+
+#closeModal:hover {
+  color: #e74c3c;
+}
+
+.viewRequest {
+  margin-top: 10px;
+}
+
+.viewRequest h2 {
+  margin-bottom: 25px;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #2c3e50;
+  letter-spacing: 1px;
+}
+
+.viewRequest p {
+  margin: 8px 0;
+  font-size: 1rem;
+}
+
+.viewRequest p strong {
+  color: #34495e;
+}
+
+#modalContent {
+  text-align: left;
+  line-height: 1.5;
+  color: #555;
+}
+
+.viewRequest p:last-of-type {
+  margin-bottom: 20px;
+}
+
+.viewRequest a {
+  color: #2980b9;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.viewRequest a:hover {
+  color: #1c5980;
+}
+
+.modal-backdrop {
+  display: none;              /* 기본은 안 보임 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;               /* 화면 전체 가로 */
+  height: 100vh;              /* 화면 전체 세로 */
+  background: rgba(0, 0, 0, 0.4); /* 반투명 검정 (회색 느낌) */
+  z-index: 999;              /* 모달보다는 아래, 페이지보다는 위 */
+}
+.modal-backdrop.show {
+  display: block;
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bk.project.evaluation.mapper.EvaluationMapper">
+<resultMap id="EvaluationMap" type="com.bk.project.evaluation.vo.Evaluation">
+<result property="evalNo" column="eval_no"/>
+<result property="memberNo" column="member_no"/>
+<result property="evaluatorNo" column="evaluator_no"/>
+<result property="grade" column="grade"/>
+<result property="evalDate" column="eval_date"/>
+<result property="reason" column="reason"/>
+</resultMap>
+
+<insert id="newEvaluation" parameterType="Evaluation">
+	INSERT INTO evaluation(member_no, evaluator_no, grade, eval_date, reason)
+	VALUES (#{memberNo}, #{evaluatorNo}, #{grade}, #{evalDate}, #{reason})
+</insert>
+
+<!-- 전체 직원 조회 (피평가자 선택용) -->
+<select id="selectAllMembers" resultType="com.bk.project.member.vo.Member">
+  SELECT * FROM member
+</select>
+
+<!-- 평가자 조회 (관리자만) -->
+<select id="evalMem" resultType="com.bk.project.member.vo.Member">
+  SELECT * FROM member
+  WHERE role = 'ADMIN'
+</select>
+
+<!-- 진급 대상자 조회-->
+<select id="promoCandi" resultType="com.bk.project.evaluation.dto.EvaluationDTO">
+SELECT 
+    e.member_no   AS candidateNo,      -- 피평가자 번호
+    m.name        AS memberName,       -- 피평가자 이름
+    d.dept_name   AS deptName,
+    e.grade       AS grade,
+    e.eval_date   AS registeredAt
+FROM evaluation e
+JOIN member m  ON e.member_no = m.member_no    -- 피평가자
+JOIN department d ON m.dept_no = d.dept_no
+WHERE e.grade = 'A'
+</select>
+</mapper>

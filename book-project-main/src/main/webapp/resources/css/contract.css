@@ -1,0 +1,21 @@
+/* 성별 라디오 */
+.gender-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 16px;
+}
+.gender-group .label {
+	 margin-right: 4px; 
+ }
+ 
+.gender-group label { 
+	display: inline-flex; 
+	align-items: center; 
+	gap: 6px; }
+
+
+/* 해지 모달 전용(선택사항): 텍스트 영역 여백 */
+#terminationReason {
+  min-height: 120px;
+}

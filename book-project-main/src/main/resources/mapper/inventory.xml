@@ -1,0 +1,305 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.inventory.mapper.InventoryMapper">
+
+<resultMap id="InventoryMap" type="com.bk.project.inventory.vo.Inventory">
+ <id property="inventoryNo" column="inventory_no" />
+    <result property="bookNo" column="book_no" />
+    <result property="bookTitle" column="book_title" />
+    <result property="actionType" column="action_type" />
+    <result property="actionDate" column="action_date" />
+    <result property="quantity" column="quantity" />
+    <result property="location" column="location" />
+    <result property="endContractDate" column="end_contract_date" />
+      <result property="contractNo"   column="contract_no"/>
+       <result property="defectNo" column="defect_no" />
+</resultMap>
+
+<insert id="insertInven" parameterType="Inventory">
+INSERT INTO inventory
+(book_no, action_type, action_date, quantity, 
+location, end_contract_date, defect_no)
+VALUES 
+(  #{bookNo}, #{actionType}, #{actionDate}, 
+#{quantity}, #{location}, #{endContractDate}, #{defectNo})
+</insert>
+
+<!--재고수량 체크-->
+<select id="checkInvenByInventoryNo" parameterType="int" resultType="int">
+  SELECT quantity FROM inventory WHERE inventory_no = #{inventoryNo}
+</select>
+
+<select id="findInventoryByDefectNo" parameterType="int" resultType="Inventory">
+SELECT * FROM inventory
+WHERE defect_no = #{defectNo}
+</select>
+
+<update id="updateInventoryByDefect" parameterType="Defect">
+update inventory
+set quantity = #{quantity}
+WHERE defect_no = #{defectNo}
+</update>
+
+<select id="allInven" resultType="com.bk.project.inventory.vo.Inventory">
+  SELECT
+      NULL AS inventory_no,
+      i.book_no,
+      b.title AS book_title,
+      '재고량' AS action_type,
+      NULL AS action_date,
+      i.location,
+      NULL AS end_contract_date,
+      SUM(
+        CASE 
+          WHEN i.action_type = 'IN'  THEN i.quantity
+          WHEN i.action_type = 'OUT' THEN -i.quantity
+          ELSE 0
+        END
+      ) AS quantity,
+      NULL AS reason
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  WHERE i.action_type IN ('IN','OUT')
+  GROUP BY i.book_no, i.location
+  HAVING quantity >= 0
+
+  UNION ALL
+
+  SELECT
+      i.inventory_no,
+      i.book_no,
+      b.title AS book_title,
+      i.action_type,
+      i.action_date,
+      i.location,
+      i.end_contract_date,
+      i.quantity,
+      i.reason
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  WHERE i.action_type = 'RETURN'
+
+  ORDER BY book_title, location, action_date
+</select>
+ <select id="searchInvenTest" parameterType="InventoryDTO" 
+        resultType="com.bk.project.inventory.vo.Inventory">
+
+  SELECT
+      NULL AS inventory_no,
+      i.book_no,
+      b.title AS book_title,
+      '재고량' AS action_type,
+      NULL AS action_date,
+      i.location,
+      NULL AS end_contract_date,
+      SUM(
+        CASE 
+          WHEN i.action_type = 'IN'  THEN i.quantity
+          WHEN i.action_type = 'OUT' THEN -i.quantity
+          ELSE 0
+        END
+      ) AS quantity,
+      NULL AS reason
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  <where>
+      i.action_type IN ('IN','OUT')
+      <choose>
+        <when test="select.equals('all') and keyword != null and keyword != ''">
+          AND (b.title LIKE CONCAT('%', #{keyword}, '%')
+               OR CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+        </when>
+        <when test="select.equals('bookTitle') and keyword != null and keyword != ''">
+          AND b.title LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+        <when test="select.equals('bookNo') and keyword != null and keyword != ''">
+          AND CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+      </choose>
+  </where>
+  GROUP BY i.book_no, i.location
+  HAVING quantity >= 0
+
+  UNION ALL
+
+  SELECT
+      i.inventory_no,
+      i.book_no,
+      b.title AS book_title,
+      i.action_type,
+      i.action_date,
+      i.location,
+      i.end_contract_date,
+      i.quantity,
+      i.reason
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  <where>
+      i.action_type = 'RETURN'
+      <choose>
+        <when test="select.equals('all') and keyword != null and keyword != ''">
+          AND (b.title LIKE CONCAT('%', #{keyword}, '%')
+               OR CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+        </when>
+        <when test="select.equals('bookTitle') and keyword != null and keyword != ''">
+          AND b.title LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+        <when test="select.equals('bookNo') and keyword != null and keyword != ''">
+          AND CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+      </choose>
+  </where>
+
+  ORDER BY book_title, location, action_date
+</select>
+
+
+
+
+<select id="searchInven" parameterType="InventoryDTO" resultMap = "InventoryMap">
+	SELECT 
+		i.inventory_no, i.book_no, b.title AS book_title, 
+		i.action_type, i.action_date, i.location, 
+		i.end_contract_date, i.quantity, i.reason
+	FROM inventory i
+	LEFT JOIN book b ON i.book_no = b.book_no
+	<where>
+		<choose>
+			<when test="select.equals('all') and keyword != null and keyword != ''">
+				(b.title LIKE CONCAT('%', #{keyword}, '%')
+				OR CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+			</when>
+			<when test="select.equals('bookTitle') and keyword != null and keyword != ''">
+				b.title LIKE CONCAT('%', #{keyword}, '%')
+			</when>
+			<when test="select.equals('bookNo') and keyword != null and keyword != ''">
+				CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+			</when>
+		</choose>
+	</where>
+</select>
+<select id="findInvenNo" parameterType="int" resultMap="InventoryMap">
+	 SELECT
+    i.inventory_no,
+    i.book_no,
+    b.title AS book_title
+  FROM
+    inventory i
+  JOIN
+    book b ON i.book_no = b.book_no
+  WHERE
+    i.inventory_no = #{inventoryNo}
+</select>
+
+<select id="selectInOnly" resultMap="InventoryMap">
+     SELECT
+      i.inventory_no,
+      i.book_no,  
+      b.title AS book_title,
+      i.location,
+      i.quantity
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  WHERE i.action_type = 'IN'
+    AND i.quantity > 0           -- 0인 배치는 제외
+  ORDER BY b.title, i.location, i.inventory_no
+</select>
+<!--계약 종료시 책 재고 삭제-->
+<delete id="deleteByBookNo">
+    DELETE FROM inventory WHERE book_no = #{bookNo}
+</delete>
+
+<!-- 재고 0일 때 상태 삭제 -->
+<delete id="deleteInventory" parameterType="map">
+  DELETE FROM inventory
+    WHERE inventory_no = #{inventoryNo} AND quantity = 0 
+</delete>
+
+
+<!--재고 차트-->
+<select id="getInventoryBook" resultType="map">
+SELECT 
+  b.title AS title,
+  SUM(
+    CASE 
+      WHEN i.action_type = 'IN' THEN i.quantity
+      WHEN i.action_type = 'RETURN' THEN i.quantity
+      WHEN i.action_type = 'OUT' THEN -i.quantity
+      ELSE 0
+    END
+  ) AS quantity
+FROM inventory i
+JOIN book b ON i.book_no = b.book_no
+GROUP BY b.title
+HAVING quantity >= 0  
+</select>
+
+<!-- 페이징 처리-->
+<!-- 전체 조회 (all) -->
+<select id="allInventory" resultType="com.bk.project.inventory.vo.Inventory">
+  SELECT i.inventory_no, i.book_no, b.title AS book_title,
+         i.action_type, i.action_date, i.location,
+         i.end_contract_date, i.quantity, i.reason
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  ORDER BY i.inventory_no DESC
+  LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 전체 개수 (countAll) -->
+<select id="countAllInventory" resultType="int">
+  SELECT COUNT(*)
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+</select>
+
+<!-- 검색 조회 (search) -->
+<select id="searchInventory" parameterType="InventoryDTO" resultType="com.bk.project.inventory.vo.Inventory">
+  SELECT i.inventory_no, i.book_no, b.title AS book_title,
+         i.action_type, i.action_date, i.location,
+         i.end_contract_date, i.quantity, i.reason
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  <where>
+    <if test="keyword != null and keyword != ''">
+      <choose>
+        <when test="select == 'bookTitle'">
+          b.title LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+        <when test="select == 'bookNo'">
+          CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+        <otherwise>
+          (b.title LIKE CONCAT('%', #{keyword}, '%')
+           OR CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+        </otherwise>
+      </choose>
+    </if>
+  </where>
+  ORDER BY i.inventory_no DESC
+  LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<!-- 검색 개수 (count) -->
+<select id="countInventory" parameterType="InventoryDTO" resultType="int">
+  SELECT COUNT(*)
+  FROM inventory i
+  JOIN book b ON b.book_no = i.book_no
+  <where>
+    <if test="keyword != null and keyword != ''">
+      <choose>
+        <when test="select == 'bookTitle'">
+          b.title LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+        <when test="select == 'bookNo'">
+          CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%')
+        </when>
+        <otherwise>
+          (b.title LIKE CONCAT('%', #{keyword}, '%')
+           OR CAST(i.book_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+        </otherwise>
+      </choose>
+    </if>
+  </where>
+</select>
+
+</mapper>

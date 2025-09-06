@@ -1,0 +1,209 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.salary.mapper.SalaryMapper">
+<!-- type="com.bk.project.salary.vo.Salary" -->
+<resultMap id="SalaryMap" type="Salary">
+<result property="salaryNo" column="salary_no"/>
+  <result property="memberNo" column="member_no"/>
+   <result property="deptNo" column="dept_no"/>
+  <result property="baseSalary" column="base_salary"/>
+  <result property="positionAllowance" column="position_allowance"/>
+  <result property="mealAllowance" column="meal_allowance"/>
+  <result property="otRate" column="ot_rate"/>
+  <result property="effectiveDate" column="effective_date"/>
+  <result property="description" column="description"/>
+  <result property="name" column="name"/>
+  <result property="deptName" column="dept_name"/>
+</resultMap>
+
+
+<!-- 급여 등록-->
+<insert id="insertSalary" parameterType="com.bk.project.salary.vo.Salary" 
+useGeneratedKeys="true" 
+        keyProperty="salaryNo">
+    INSERT INTO salary(
+        member_no, dept_no, base_salary, position_allowance,
+        meal_allowance, tax, ot_rate, total_salary, effective_date, bonus
+    ) VALUES (
+        #{memberNo}, #{deptNo}, #{baseSalary}, #{positionAllowance},
+        #{mealAllowance}, #{tax}, #{otRate}, #{totalSalary}, #{effectiveDate}, #{bonus}
+    )
+    ON DUPLICATE KEY UPDATE
+        base_salary        = VALUES(base_salary),
+        position_allowance = VALUES(position_allowance),
+        meal_allowance     = VALUES(meal_allowance),
+        tax                = VALUES(tax),
+        ot_rate            = VALUES(ot_rate),
+        total_salary       = VALUES(total_salary),
+        effective_date     = VALUES(effective_date),
+        bonus              = VALUES(bonus)
+</insert>
+
+<select id="getTotalSalary" parameterType="int">
+	SELECT total_salary FROM salary WHERE member_no =#{memberNo}
+</select>
+
+<!-- 전체 조회 -->
+<select id="allSalary" parameterType="SalaryPagingDTO" resultMap="SalaryMap">
+SELECT m.member_no,
+       m.name,
+       m.dept_no,
+       s.salary_no,
+       s.base_salary,
+       s.position_allowance,
+       s.meal_allowance,
+       s.ot_rate,
+       s.tax,
+       s.total_salary,
+       s.bonus,
+       s.effective_date
+FROM member m
+JOIN salary s 
+  ON s.member_no = m.member_no
+ AND s.salary_no = (
+       SELECT MAX(s2.salary_no)
+       FROM salary s2
+       WHERE s2.member_no = m.member_no
+ )
+LIMIT #{limit} OFFSET #{offset};
+</select>
+
+<!--직급별 기본급 불러오기-->
+<select id="positionSalary" parameterType="String" resultType="PositionSalary">
+	SELECT * FROM base_salary_policy WHERE position=#{position}
+</select>
+
+
+<!-- 검색 기능 -->
+<select id="searchSalary" parameterType="SalaryPagingDTO" resultMap="SalaryMap">
+SELECT m.member_no,
+       m.name,
+       m.dept_no,
+       s.salary_no,
+       s.base_salary,
+       s.position_allowance,
+       s.meal_allowance,
+       s.ot_rate,
+       s.tax,
+       s.total_salary,
+       s.bonus,
+       s.effective_date
+FROM member m
+JOIN salary s 
+  ON s.member_no = m.member_no
+ AND s.salary_no = (
+       SELECT MAX(s2.salary_no)
+       FROM salary s2
+       WHERE s2.member_no = m.member_no
+ )
+<where>
+    <if test="keyword != null and keyword.trim() != ''">
+        (m.name LIKE CONCAT('%', #{keyword}, '%')
+         OR CAST(m.member_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+    </if>
+</where>
+LIMIT #{limit} OFFSET #{offset};
+</select>
+
+<!-- 삭제 기능 -->
+<delete id="deleteSalary" parameterType="int">
+    DELETE FROM salary WHERE salary_no = #{salaryNo}
+</delete>
+<select id="getAllSalaryInfo" resultType="com.bk.project.salary.vo.Salary">
+SELECT 
+    m.member_no        AS memberNo,
+    m.name             AS name,
+    m.dept_no          AS deptNo,
+    COALESCE(bsp.base_salary, 0)        AS baseSalary,
+    COALESCE(bsp.position_allowance, 0) AS positionAllowance,
+    COALESCE(bsp.meal_allowance, 0)     AS mealAllowance,
+    COALESCE(ot.overtimePay, 0)         AS otRate,
+    0                                    AS tax,
+    MAX(s.effective_date)                AS effectiveDate, -- 집계 함수로 수정
+    '급여'                               AS description
+    
+FROM member m
+
+LEFT JOIN base_salary_policy bsp 
+       ON m.position = bsp.position
+       
+LEFT JOIN (
+    SELECT member_no, SUM(over_time) AS overtimePay
+    FROM attendance
+    WHERE DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+    GROUP BY member_no
+) ot ON m.member_no = ot.member_no
+
+LEFT JOIN salary s
+       ON m.member_no = s.member_no
+      AND DATE_FORMAT(s.effective_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+      
+GROUP BY m.member_no, m.name, m.dept_no, bsp.base_salary, 
+         bsp.position_allowance, bsp.meal_allowance, ot.overtimePay
+  LIMIT #{limit} OFFSET #{offset} 
+</select>
+
+
+<select id="totalAll" resultType="int">
+   SELECT COUNT(*)
+   FROM member m
+JOIN salary s 
+  ON s.member_no = m.member_no
+ AND s.salary_no = (
+       SELECT MAX(s2.salary_no)
+       FROM salary s2
+       WHERE s2.member_no = m.member_no
+ )
+    </select>
+    
+<select id="total" parameterType="SalaryPagingDTO" resultType="int">
+    SELECT COUNT(*)
+   FROM member m
+JOIN salary s 
+  ON s.member_no = m.member_no
+ AND s.salary_no = (
+       SELECT MAX(s2.salary_no)
+       FROM salary s2
+       WHERE s2.member_no = m.member_no
+ )
+<where>
+    <if test="keyword != null and keyword.trim() != ''">
+        (m.name LIKE CONCAT('%', #{keyword}, '%')
+         OR CAST(m.member_no AS CHAR) LIKE CONCAT('%', #{keyword}, '%'))
+    </if>
+</where>
+</select>
+<!--급여 수정시 급여번호로 급여정보 찾기-->
+<select id="getSalaryByNo" parameterType="int" resultMap="SalaryMap">
+  SELECT   s.salary_no,
+  s.member_no,
+  s.base_salary,
+  s.position_allowance,
+  s.meal_allowance,
+  s.ot_rate,
+  s.bonus,
+  s.tax,
+  s.total_salary,
+  s.effective_date,
+  m.name,
+  m.dept_no,
+  d.dept_name
+  FROM salary s 
+  JOIN member m USING(member_no)
+   JOIN department d ON m.dept_no = d.dept_no
+   WHERE salary_no = #{salaryNo}
+</select>
+<!--급여 수정-->
+<update id="updateSalary" parameterType="Salary">
+  UPDATE salary
+  SET base_salary = #{baseSalary},
+      position_allowance = #{positionAllowance},
+      meal_allowance = #{mealAllowance},
+      ot_rate = #{otRate},
+      bonus = #{bonus},
+      tax = #{tax},
+      total_salary = #{totalSalary},
+       effective_date     = #{effectiveDate}
+  WHERE salary_no = #{salaryNo}
+</update>
+
+</mapper>

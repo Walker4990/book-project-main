@@ -1,0 +1,43 @@
+/*evaluation 진급 평가 페이지 CSS*/
+
+.submit #evalBtn {
+	min-width:120px;
+	height:var(--ctl-h);
+	border:none; 
+	border-radius:8px; 
+	cursor:pointer;
+	font-weight:700; 
+	color:#fff;
+	background:#2c3e50;
+	transition:filter .15s ease, background .15s ease, opacity .15s ease;
+}
+
+.submit #evalCancel {
+	min-width:120px;
+	height:var(--ctl-h);
+	border:none; 
+	border-radius:8px; 
+	cursor:pointer;
+	font-weight:700; color:#333;
+	background:var(--line);
+	transition:filter .15s ease, background .15s ease, opacity .15s ease;
+}
+
+.form-grid .reason {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 좌우 반반 */
+  gap: 16px 20px; /* 행, 열 간격 */ 
+  }
+  
+  .reason label {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 6px;
+  display: block;
+  }
+  
+  .evalSubmit {
+	display: grid;
+	 grid-template-columns: 1fr 1fr; 
+  }
+

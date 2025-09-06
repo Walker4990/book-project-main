@@ -1,0 +1,114 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.delivery.mapper.DeliveryMapper">
+
+<!-- 
+		private int deliveryNo; //company_no
+	private String name; //name
+	private String address; //address
+	private int contractAmount; //contract_amount
+	private LocalDate contractDate; //contract_date
+	
+-->
+
+<resultMap id="deliveryMap" type="Delivery">
+<id property="deliveryNo" column="company_no"/>
+<result property="name" column="name"/>
+<result property="address" column="address"/>
+<result property="contractAmount" column="contract_amount"/>
+<result property="contractDate" column="contract_date"/>
+</resultMap>
+
+<!-- 운송사 추가 -->
+<insert id="newDelivery" parameterType="Delivery"
+useGeneratedKeys="true" keyProperty="deliveryNo">
+INSERT INTO delivery_company(name, address, contract_amount,contract_date)
+SELECT #{name},#{address},#{contractAmount},#{contractDate}
+FROM DUAL
+WHERE NOT EXISTS
+(
+	SELECT 1 FROM delivery_company
+	WHERE name = #{name} 
+	AND address = #{address}
+	AND contract_amount = #{contractAmount} 
+	AND contract_date = #{contractDate}  
+)
+</insert>
+
+
+<select id="getDeliveryCompanyByNo" parameterType="Delivery" resultMap="deliveryMap">
+SELECT * FROM delivery_company
+WHERE name = #{name}
+AND address = #{address}
+AND contract_amount = #{contractAmount} 
+AND contract_date = #{contractDate}   
+</select>
+
+
+<!-- 전체 조회-->
+<select id="allDelivery" parameterType="DeliveryPagingDTO" resultMap="deliveryMap">
+SELECT * FROM delivery_company
+
+</select>
+
+<!-- 전체 조회-->
+<select id="allDeliveryShipment" resultMap="deliveryMap">
+SELECT * FROM delivery_company
+</select>
+
+
+<!-- 검색 -->
+<!-- 검색/ 조회 페이징 합치기-->
+<select id="searchDelivery" resultMap="deliveryMap" parameterType="map">
+  SELECT *
+  FROM delivery_company
+  <where>
+    <if test="keyword != null and keyword != ''">
+      name LIKE CONCAT('%', #{keyword}, '%')
+    </if>
+  </where>
+  LIMIT #{limit} OFFSET #{offset}
+</select>
+
+<select id="countDelivery" parameterType="DeliveryPagingDTO" resultType="int">
+    SELECT COUNT(*)
+    FROM delivery_company
+    <where>
+        <if test="keyword != null and keyword != ''">
+            name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+    </where>
+</select>
+<!-- 정보 수정 -->
+
+<update id="updateDelivery" parameterType="Delivery">
+UPDATE delivery_company
+<set>
+	<if test="name != null">
+	name = #{name},
+	</if>
+	<if test="address != null">
+	address = #{address},
+	</if>
+	<if test="contractAmount != null">
+	contract_amount = #{contractAmount},
+	</if>
+	<if test="contractDate != null">
+	contract_date = #{contractDate}
+	</if>
+</set>
+WHERE company_no = #{deliveryNo}
+</update>
+
+<select id="getDeliveryByNo" parameterType="int" resultMap="deliveryMap">
+SELECT * FROM delivery_company WHERE company_no = #{deliveryNo}
+</select>
+
+<!--정보 삭제-->
+
+<delete id="deleteDelivery">
+DELETE FROM delivery_company
+WHERE company_no = #{deliveryNo}
+</delete>
+
+
+</mapper>

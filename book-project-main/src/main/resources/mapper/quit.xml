@@ -1,0 +1,256 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.quit.mapper.QuitMapper">
+
+<resultMap id="MemberResultMap" type="com.bk.project.member.vo.Member">
+    <result property="memberNo" column="member_no"/>
+    <result property="name" column="name"/>
+    <result property="id" column="id"/>
+    <result property="password" column="password"/>
+    <result property="deptNo" column="dept_no"/>
+    <result property="dept" column="dept"/>
+    <result property="addr" column="address"/>
+    <result property="email" column="email"/>
+    <result property="role" column="role"/>
+    <result property="dept_name" column="dept_name"/>
+    <result property="joinDate" column="join_date"/>
+    <result property="quitDate" column="quit_date"/>
+    <result property="type" column="type"/>
+</resultMap>
+
+
+<resultMap id="quitMap" type="Quit">
+	<id property="quitNo" column="quit_no" />
+    <result property="deptNo" column="dept_no"/>
+    <result property="name" column="name"/>
+    <result property="position" column="position"/>
+    <result property="addr" column="address"/>
+    <result property="email" column="email"/>
+    <result property="joinDate" column="join_date"/>
+    <result property="quitDate" column="quit_date"/>
+    <result property="attendance" column="attendance"/>
+    <result property="otRate" column="ot_rate"/>
+    <result property="baseSalary" column="base_salary"/>
+    <result property="positionAllowance" column="position_allowance"/>
+    <result property="tax" column="tax"/>
+    <result property="totalSalary" column="total_salary"/>
+    <result property="bonus" column="bonus"/>
+</resultMap>
+
+<resultMap id="allQuitMap" type="QuitDTO">
+	<id property="quitNo" column="quit_no" />
+    <result property="deptName" column="dept_name"/>
+    <result property="name" column="name"/>
+    <result property="position" column="position"/>
+    <result property="addr" column="address"/>
+    <result property="email" column="email"/>
+    <result property="joinDate" column="join_date"/>
+    <result property="quitDate" column="quit_date"/>
+    <result property="attendance" column="attendance"/>
+    <result property="otRate" column="ot_rate"/>
+    <result property="baseSalary" column="base_salary"/>
+    <result property="positionAllowance" column="position_allowance"/>
+    <result property="tax" column="tax"/>
+    <result property="totalSalary" column="total_salary"/>
+    <result property="bonus" column="bonus"/>
+</resultMap>
+
+
+
+
+<!--퇴사 사원 추가-->
+<select id="findMemberNo" parameterType="int" resultMap="MemberResultMap">
+SELECT * FROM member
+WHERE member_no = #{memberNo}
+</select>
+
+<insert id="addQuitMember" parameterType="Quit">
+INSERT INTO quit(name,position, dept_no,
+				address,email,join_date,quit_date,
+				attendance,ot_rate,base_salary,position_allowance,
+				tax,total_salary,bonus)
+VALUES(#{name},#{position},#{deptNo},#{addr},#{email},
+		#{joinDate},#{quitDate},#{attendance},#{otRate},
+		#{baseSalary},#{positionAllowance},#{tax},#{totalSalary},#{bonus})				
+</insert>
+
+
+<!--퇴사하는 회원 정보 찾기-->
+<select id="getAttendanceInfo" parameterType="int" resultType="com.bk.project.attendance.vo.AttendanceInfo">
+SELECT attendance FROM attendance_info
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="getPayRoll" parameterType="int" resultType="com.bk.project.payroll.vo.Payroll">
+SELECT * FROM payroll
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="getSalary" parameterType="int" resultType="com.bk.project.salary.vo.Salary">
+SELECT * FROM salary
+WHERE member_no = #{memberNo}
+ORDER BY salary_no DESC
+LIMIT 1;
+</select>
+
+<!--자식 테이블 찾기-->
+<select id="findAttendanceInfo" parameterType="int" resultType="AttendanceInfo">
+SELECT * FROM attendance_info
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="findAttendance" parameterType="int" resultType="Attendance">
+SELECT * FROM attendance
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="findSalary" parameterType="int" resultType="Salary">
+SELECT * FROM salary
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="findPayroll" parameterType="int" resultType="Payroll">
+SELECT * FROM payroll
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="findAttendanceSave" parameterType="int" resultType="AttendanceSave">
+SELECT * FROM attendance_save
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="findRequest" parameterType="int" resultType="Request">
+SELECT * FROM request
+WHERE member_no = #{memberNo}
+OR approver_no = #{memberNo}
+</select>
+
+
+<!--자식 테이블 삭제하기-->
+<delete id="quitAttendanceInfo" parameterType="int">
+DELETE FROM attendance_info
+WHERE member_no =#{memberNo}
+</delete>
+
+<delete id="quitAttendance" parameterType="int">
+DELETE FROM attendance
+WHERE member_no =#{memberNo}
+</delete>
+
+<delete id="quitSalary" parameterType="int">
+DELETE FROM salary
+WHERE member_no =#{memberNo}
+</delete>
+
+<delete id="quitPayroll" parameterType="int">
+DELETE FROM payroll
+WHERE member_no =#{memberNo}
+</delete>
+
+
+<delete id="quitAttendanceSave" parameterType="int">
+DELETE FROM attendance_save
+WHERE member_no =#{memberNo}
+</delete>
+
+
+<delete id="quitMember" parameterType="int">
+DELETE FROM member
+WHERE member_no =#{memberNo}
+</delete>
+
+<delete id="quitRequest" parameterType="int">
+DELETE FROM request
+WHERE member_no =#{memberNo}
+OR approver_no = #{memberNo}
+</delete>
+
+
+
+<!-- 특정 사원의 평가 기록 조회 -->
+<select id="findEvaluation" parameterType="int" resultType="com.bk.project.evaluation.vo.Evaluation">
+    SELECT * FROM evaluation WHERE member_no = #{memberNo}
+</select>
+
+<!-- 특정 사원의 평가 기록 삭제 -->
+<delete id="quitEvaluation" parameterType="int">
+    DELETE FROM evaluation WHERE member_no = #{memberNo}
+</delete>
+
+
+<!--퇴사한 사원 조회-->
+<select id="allQuit" parameterType="QuitPagingDTO" resultMap="allQuitMap">
+SELECT
+q.name,
+q.position,
+d.dept_name,
+q.address,
+q.email,
+q.join_date,
+q.quit_date,
+q.attendance,
+q.ot_rate,
+q.base_salary,
+q.position_allowance,
+q.tax,
+q.total_salary,
+q.bonus
+FROM quit q
+JOIN department d USING(dept_no)
+order by q.quit_no
+LIMIT #{offset}, #{limit}
+</select>
+<!--퇴사한 사원 조회-->
+<select id="searchQuit" parameterType="QuitPagingDTO" resultMap="allQuitMap">
+SELECT
+q.name,
+q.position,
+d.dept_name,
+q.address,
+q.email,
+q.join_date,
+q.quit_date,
+q.attendance,
+q.ot_rate,
+q.base_salary,
+q.position_allowance,
+q.tax,
+q.total_salary,
+q.bonus
+FROM quit q
+JOIN department d USING(dept_no)
+ <where>
+		<if test="keyword != null and keyword != ''">
+		(
+			q.name LIKE CONCAT('%', #{keyword}, '%')
+			OR q.email LIKE CONCAT('%', #{keyword}, '%')
+			OR q.address LIKE CONCAT('%', #{keyword}, '%')
+			OR q.position LIKE CONCAT('%', #{keyword}, '%')
+		)
+		</if>
+</where>
+order by q.quit_no
+LIMIT #{offset}, #{limit}
+</select>
+
+
+
+
+
+<select id="total" parameterType="QuitPagingDTO" resultType="int">
+SELECT COUNT(*) FROM quit
+ <where>
+		<if test="keyword != null and keyword != ''">
+		(
+			name LIKE CONCAT('%', #{keyword}, '%')
+			OR email LIKE CONCAT('%', #{keyword}, '%')
+			OR address LIKE CONCAT('%', #{keyword}, '%')
+			OR position LIKE CONCAT('%', #{keyword}, '%')
+		)
+		</if>
+	</where>
+</select>
+
+
+
+
+</mapper>

@@ -1,0 +1,33 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.overtime.mapper.OverTimeMapper">
+
+<resultMap id="OverMap" type="OverTime">
+<id property="overTimeNo" column="overtime_no"/>
+<result property="memberNo" column="member_no"/>
+<result property="name" column="name"/>
+<result property="date" column="date"/>
+<result property="reason" column="reason"/>
+</resultMap>
+
+
+
+<!--야근 신청-->
+<insert id="addOverTime" parameterType="OverTime">
+INSERT INTO overtime(member_no,name, date, reason)
+VALUES(#{memberNo},#{name},#{date},#{reason})
+</insert>
+
+<!--오늘 이미 야근신청을 했으면 빠꾸먹기-->
+<select id="searchOverTime" parameterType="OverTime" resultMap="OverMap">
+SELECT * FROM overtime
+WHERE date = #{date}
+AND member_no = #{memberNo}
+</select>
+
+
+<select id="todayOverTime" parameterType="String" resultType="int">
+SELECT member_no 
+FROM overtime
+WHERE date = DATE_ADD(#{day}, INTERVAL -1 DAY)
+</select>
+</mapper>

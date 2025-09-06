@@ -1,0 +1,281 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.member.mapper.MemberMapper">
+
+<resultMap id="MemberResultMap" type="com.bk.project.member.vo.Member">
+    <result property="memberNo" column="member_no"/>
+    <result property="name" column="name"/>
+    <result property="id" column="id"/>
+    <result property="password" column="password"/>
+    <result property="deptNo" column="dept_no"/>
+    <result property="dept" column="dept"/>
+    <result property="addr" column="address"/>
+    <result property="email" column="email"/>
+    <result property="role" column="role"/>
+    <result property="dept_name" column="dept_name"/>
+    <result property="joinDate" column="join_date"/>
+    <result property="quitDate" column="quit_date"/>
+    <result property="type" column="type"/>
+</resultMap>
+
+<resultMap id="MemberMap" type="com.bk.project.member.dto.MemberDTO">
+    <id property="memberNo" column="member_no"/>
+    <result property="name" column="name"/>
+    <result property="id" column="id"/>
+    <result property="password" column="password"/>
+    <result property="deptNo" column="dept_no"/> 
+    <result property="deptName" column="dept_name"/>
+    <result property="baseSalary" column="base_salary"/>
+    <result property="positionAllowance" column="position_allowance"/>
+    <result property="mealAllowance" column="meal_allowance"/>
+    <result property="otRate" column="ot_rate"/>
+    <result property="tax" column="tax"/>
+    <result property="bonus" column="bonus"/>
+    <result property="totalSalary" column="total_salary"/>
+    <result property="addr" column="address"/>
+    <result property="email" column="email"/>
+    <result property="role" column="role"/>
+    <result property="joinDate" column="join_date"/>
+    <result property="quitDate" column="quit_date"/>
+</resultMap>
+
+
+
+<insert id="register" parameterType="Member">
+	 INSERT INTO member(name, id, password, position, dept_no, address, email, role, join_date)
+    VALUES (#{name}, #{id}, #{password}, #{position}, #{deptNo}, #{addr}, #{email}, #{role}, #{joinDate})
+</insert>
+
+<select id="duplicateId" parameterType="String" resultType="Member">
+	SELECT * FROM member where id=#{id}
+</select>
+
+<select id="duplicateEmail" parameterType="String" resultType="Member">
+	SELECT * FROM member where email=#{email}
+</select>
+
+<select id="login" parameterType="String" resultMap="MemberResultMap">
+select
+ m.member_no,
+ m.name,
+ m.id,
+ m.password,
+ m.dept_no ,
+ m.address,
+ m.email,
+ m.role,
+ m.join_date,
+ m.quit_date,
+ d.dept_name
+from member m
+ join department d using(dept_no)
+WHERE id= #{userName} 
+</select>
+
+<select id="getMemberInfo" parameterType="String" resultMap="MemberResultMap">
+SELECT * FROM member
+WHERE id = #{id}
+</select>
+
+<update id="updateInfo" parameterType="Member">
+		UPDATE member
+		<set>
+			<if test="password != null and password !=''">
+			password=#{password},
+			</if>
+			<if test="addr != null and addr !=''">
+			address=#{addr},
+			</if>
+			<if test="email != null and email !=''">
+			email=#{email},
+			</if>
+			<if test="deptNo != null and deptNo !=''">
+			dept_no=#{deptNo},
+			</if>
+		</set>
+		WHERE id = #{id}
+</update>
+
+	
+<select id="updateMember" parameterType="Member" resultMap="MemberResultMap">
+select
+ m.member_no,
+ m.name,
+ m.id,
+ m.password,
+ m.dept_no,
+ m.address,
+ m.email,
+ m.role,
+ d.dept_name,
+ m.join_date
+from member m
+join department d using(dept_no)
+WHERE id = #{id}
+AND password = #{password}
+</select>	
+	
+<select id="allMember" parameterType="MemberPagingDTO"   resultMap="MemberResultMap">
+    SELECT  
+    	m.member_no,
+        m.name,
+        m.id,
+        m.password,
+        m.address,
+        m.position,
+        m.email,
+        m.role,
+        m.dept_no,
+        m.join_date,         
+        d.dept_name,
+        a.type
+    FROM member m
+    JOIN department d USING(dept_no)
+    LEFT JOIN attendance_info a USING(member_no)
+    LIMIT #{offset}, #{limit} 
+</select>
+
+<select id="searchMember" parameterType="MemberPagingDTO" resultMap="MemberResultMap">
+    SELECT 
+        m.*, 
+        d.dept_name,
+        a.type
+    FROM member m
+    JOIN department d USING(dept_no)
+    LEFT JOIN attendance_info a USING(member_no)   <!-- ✅ LEFT JOIN 으로 변경 -->
+    <where>
+        <choose>
+            <when test="select == 'all' and keyword != null and keyword != ''">
+                (m.name LIKE CONCAT('%', #{keyword}, '%') OR m.member_no = #{keyword})
+            </when>		
+            <when test="select == 'name' and keyword != null and keyword != ''">
+                m.name LIKE CONCAT('%', #{keyword}, '%')
+            </when>		
+            <when test="select == 'memberNo' and keyword != null and keyword != ''">
+                m.member_no = #{keyword}
+            </when>		
+        </choose>
+    </where>
+     LIMIT #{offset}, #{limit} 
+</select>
+
+
+<!-- 모달 검색-->
+<select id="searchMemberModal" parameterType="string" resultMap="MemberMap">
+    SELECT 
+        m.member_no            AS member_no,
+        m.name                 AS name,
+        d.dept_name            AS dept_name,
+        COALESCE(bp.base_salary, 0)        AS base_salary,
+        COALESCE(bp.position_allowance, 0) AS position_allowance,
+        COALESCE(bp.meal_allowance, 0)     AS meal_allowance,
+        COALESCE(SUM(TIME_TO_SEC(a.over_time) / 60) * 2000, 0) AS ot_rate,
+        0 AS bonus,
+        0 AS tax,
+        0 AS total_salary
+    FROM member m
+    JOIN department d ON m.dept_no = d.dept_no
+    LEFT JOIN base_salary_policy bp ON m.position = bp.position   <!-- ✅ LEFT JOIN -->
+    LEFT JOIN attendance a 
+           ON m.member_no = a.member_no
+          AND DATE_FORMAT(a.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
+    WHERE m.name LIKE CONCAT('%', #{keyword}, '%')
+       OR m.member_no LIKE CONCAT('%', #{keyword}, '%')
+    GROUP BY m.member_no, m.name, d.dept_name, 
+             bp.base_salary, bp.position_allowance, bp.meal_allowance
+</select>
+<select id="test" parameterType="Member" resultMap="MemberResultMap">
+select
+ m.member_no,
+ m.name,
+ m.id,
+ m.password,
+ m.dept_no,
+ m.address,
+ m.email,
+ m.role,
+ d.dept_name
+from member m
+join department d using(dept_no)
+WHERE id = #{id}
+AND password = #{password}
+</select>	
+
+<!--퇴사 사원 추가-->
+<select id="findMemberNo" parameterType="int" resultMap="MemberResultMap">
+SELECT * FROM member
+WHERE member_no = #{memberNo}
+</select>
+
+<insert id="addQuitMember" parameterType="Quit">
+INSERT INTO quit(member_no,name,position, dept_no,
+				address,email,role,join_date,quit_date,
+				attendance,ot_rate,base_salary,position_allowance,
+				tax,total_salary,bonus)
+VALUES(#{memberNo},#{name},#{position},#{deptNo},#{addr},#{email},
+		#{role},#{joinDate},#{quitDate},#{attendance},#{otRate},
+		#{baseSalary},#{positionAllowance},#{tax},#{totalSalary},#{bonus})				
+</insert>
+
+<!--퇴사하는 회원 정보 찾기-->
+<select id="getAttendanceInfo" parameterType="int" resultType="com.bk.project.attendance.vo.AttendanceInfo">
+SELECT attendance FROM attendance_info
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="getPayRoll" parameterType="int" resultType="com.bk.project.payroll.vo.Payroll">
+SELECT * FROM payroll
+WHERE member_no = #{memberNo}
+</select>
+
+<select id="getSalary" parameterType="int" resultType="com.bk.project.salary.vo.Salary">
+SELECT * FROM salary
+WHERE member_no = #{memberNo}
+ORDER BY salary_no DESC
+LIMIT 1;
+</select>
+
+<select id="getAttendanceSave" parameterType="int" resultType="com.bk.project.attendance.vo.AttendanceSave">
+SELECT * FROM attendance_save
+WHERE member_no = #{memberNo}
+</select>
+
+<delete id="qultMember" parameterType="int">
+DELETE FROM member
+WHERE member_no =#{memberNo}
+</delete>
+
+
+
+<select id="total" resultType="int">
+SELECT COUNT(*) FROM member
+</select>
+<select id="searchTotal" resultType="int">
+    SELECT COUNT(*) 
+    FROM member
+    <where>
+        <if test="keyword != null and keyword != ''">
+            name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+    </where>
+</select>
+
+<select id="allMembers"  resultMap="MemberResultMap">
+    SELECT  
+    	m.member_no,
+        m.name,
+        m.id,
+        m.password,
+        m.address,
+        m.position,
+        m.email,
+        m.role,
+        m.dept_no,
+        m.join_date,         
+        d.dept_name,
+        a.type
+    FROM member m
+    JOIN department d USING(dept_no)
+    LEFT JOIN attendance_info a USING(member_no)
+</select>
+
+</mapper>

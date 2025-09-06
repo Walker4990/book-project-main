@@ -1,0 +1,23 @@
+
+/* 컨테이너 */
+.updateCard{
+  width: min(640px, 92%);
+  margin: 40px auto;
+  padding: 32px 28px;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  display:flex; 
+  flex-direction:column; 
+  gap:16px;
+}
+
+/* 제목 */
+.updateCard h1{
+  margin: 0 0 8px;
+  font-size:1.6rem; 
+  font-weight:800; 
+  text-align:center; 
+  color:var(--ink);
+}
+

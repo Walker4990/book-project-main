@@ -1,0 +1,94 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.budget.mapper.BudgetMapper">
+
+    <!-- 예산 등록 -->
+<insert id="insertBudgetPlan" parameterType="BudgetPlan">
+	    INSERT INTO budget_plan (dept_no, budget_month, total_amount, spent_amount)
+    VALUES (#{deptNo}, #{budgetMonth}, #{totalAmount}, #{spentAmount})
+</insert>
+
+<!--부서-->
+    <!-- 예산 집행 등록 -->
+    <insert id="insertBudgetExecution" parameterType="BudgetExecution">
+        INSERT INTO budget_execution (budget_no, exec_date, amount, description)
+        VALUES (#{budgetNo}, #{execDate}, #{amount}, #{description})
+    </insert>
+
+    <!-- 예산 목록 -->
+    <select id="allBudgetPlan" resultType="BudgetPlan">
+        SELECT b.*, d.dept_name
+        FROM budget_plan b
+        JOIN department d ON b.dept_no = d.dept_no
+        ORDER BY b.budget_month DESC, d.dept_name ASC
+    </select>
+
+    <!-- 예산 사용액 업데이트 -->
+    <update id="updateBudgetPlan" parameterType="BudgetExecution">
+
+<![CDATA[
+ UPDATE budget_plan
+  SET spent_amount = spent_amount + #{amount}
+  WHERE budget_no = #{budgetNo}
+    AND DATE_FORMAT(budget_month, '%Y-%m') = DATE_FORMAT(#{execDate}, '%Y-%m')
+ ]]>
+ 
+    </update>
+
+<!-- 예산 부족 시 알림용-->
+<select id="getRemainingAmount" parameterType="int" resultType="int">
+    SELECT remaining_amount
+    FROM budget_plan
+    WHERE budget_no = #{budgetNo}
+</select>
+
+
+<!--예산 사용량 차트-->
+<select id="getMonthlyBudget" resultType="map">
+SELECT  
+    bp.dept_no,
+    d.dept_name,                       
+    DATE_FORMAT(bp.budget_month, '%Y-%m') AS budget_month,                   
+    bp.total_amount,                    
+    IFNULL(SUM(be.amount), 0) AS spent_amount, 
+    ROUND(
+        CASE 
+            WHEN bp.total_amount = 0 THEN 0
+            ELSE (IFNULL(SUM(be.amount), 0) / bp.total_amount) * 100
+        END
+    , 2) AS execution_rate
+FROM budget_plan bp
+JOIN department d ON bp.dept_no = d.dept_no
+LEFT JOIN budget_execution be ON bp.budget_no = be.budget_no
+GROUP BY bp.dept_no, d.dept_name, DATE_FORMAT(bp.budget_month, '%Y-%m'), bp.total_amount
+ORDER BY budget_month;
+</select>
+
+<!--예산 월별 검색(페이징 계산용)-->
+<select id="budgetCountByMonth" resultType="int">
+	SELECT COUNT(*) FROM budget_plan b
+	JOIN department d ON b.dept_no = d.dept_no
+	WHERE DATE_FORMAT(budget_month, '%Y-%m') = #{month}
+</select>
+
+<!--예산 월별 검색-->
+<select id="budgetSelectByMonth" parameterType="BudgetPagingDTO" resultType="BudgetPlan">
+	SELECT b.*, d.dept_name FROM budget_plan b
+	JOIN department d ON b.dept_no = d.dept_no
+	WHERE DATE_FORMAT(budget_month, '%Y-%m') = #{nowMonth}
+	ORDER BY budget_month 
+	LIMIT #{offset}, #{limit}
+</select>
+
+<!--중복 예산등록 막기-->
+<select id="existsByMonth" resultType="int">
+	SELECT COUNT(*) FROM budget_plan 
+	WHERE dept_no =#{deptNo}
+	 AND DATE_FORMAT(budget_month, '%Y-%m') = DATE_FORMAT(#{budgetMonth}, '%Y-%m')
+</select>
+
+<!--등록일/집행일 정합성 체크-->
+<select id="getBudgetMonth" parameterType="int" resultType="java.time.LocalDate">
+	SELECT budget_month FROM budget_plan WHERE budget_no = #{budgetNo}
+</select>
+
+</mapper>

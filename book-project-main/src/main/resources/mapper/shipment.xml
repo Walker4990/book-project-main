@@ -1,0 +1,229 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.shipment.mapper.ShipmentMapper">
+<resultMap id="shipmentMap" type="com.bk.project.shipment.dto.ShipmentDTO">
+ <id property="shipmentNo" column="shipment_no"/>
+    <result property="inventoryNo" column="inventory_no"/>
+    <result property="bookNo" column="book_no"/>
+    <result property="bookTitle" column="title"/>
+    <result property="quantity" column="quantity"/>
+    <result property="price" column="price"/>
+    <result property="totalAmount" column="total_amount"/>
+    <result property="shipmentDate" column="shipment_date"/>
+    <result property="partnerNo" column="partner_no"/>
+    <result property="partnerName" column="partner_name"/>
+    <result property="deliveryNo" column="delivery_no"/>
+    <result property="deliveryName" column="delivery_name"/>
+    <result property="location" column="location"/>
+</resultMap>
+
+<insert id="insertShipment" parameterType="ShipmentDTO" useGeneratedKeys="true" keyProperty="shipmentNo">
+    INSERT INTO shipment (
+        inventory_no, shipment_date, partner_no, location, quantity, price, total_amount, delivery_no, book_no
+    )
+    VALUES (
+        #{inventoryNo},
+        CURDATE(),
+        #{partnerNo},
+        #{location},
+        #{quantity},
+        #{price},
+        #{totalAmount},
+        #{deliveryNo},
+        #{bookNo}
+    )
+</insert>
+<update id="decreaseInven" parameterType="ShipmentDTO">
+  UPDATE inventory
+     SET quantity = quantity - #{quantity}
+   WHERE inventory_no = #{inventoryNo}
+     AND quantity >= #{quantity}
+</update> 
+
+
+<select id="allShipment" resultType="Shipment">
+SELECT
+    s.shipment_no,
+    s.inventory_no,
+    s.book_no,
+    b.title         AS bookTitle,
+    p.name          AS partnerName,
+    s.quantity,
+    s.price,
+    s.total_amount,
+    s.shipment_date,
+    d.name          AS deliveryName,
+    s.location,
+    i.quantity      AS stockQuantity        -- ✅ 인벤토리 수량 같이 내려줌
+FROM shipment s
+JOIN inventory i        ON s.inventory_no = i.inventory_no   -- ✅ 추가
+JOIN book b             ON s.book_no = b.book_no
+LEFT JOIN partner p     ON s.partner_no = p.partner_no
+LEFT JOIN delivery_company d ON s.delivery_no = d.company_no
+ORDER BY s.shipment_no DESC                                   -- ✅ 인덱스 친화
+LIMIT #{limit} OFFSET #{offset}
+</select>
+
+
+<select id="searchShipment" parameterType="ShipmentDTO" resultType="Shipment">
+SELECT 
+    s.shipment_no,
+    s.inventory_no,
+    s.book_no,
+    b.title         AS bookTitle,
+    p.name          AS partnerName,
+    s.quantity,
+    s.price,
+    s.total_amount,
+    s.shipment_date,
+    d.name          AS deliveryName,
+    s.location,
+    i.quantity      AS stockQuantity         -- ✅ 같이 내려줌
+FROM shipment s
+JOIN inventory i        ON s.inventory_no = i.inventory_no   -- ✅ 추가
+JOIN book b             ON s.book_no = b.book_no
+LEFT JOIN partner p     ON s.partner_no = p.partner_no
+LEFT JOIN delivery_company d ON s.delivery_no = d.company_no
+<where>
+  <choose>
+     <when test="select == 'title' and keyword != null and keyword != ''">
+      b.title LIKE CONCAT('%', #{keyword}, '%')
+     </when>
+     <when test="select == 'shipment_no' and keyword != null and keyword != ''">
+      s.shipment_no LIKE CONCAT('%', #{keyword}, '%')
+     </when>
+  </choose>
+</where>
+ORDER BY s.shipment_no DESC
+LIMIT #{limit} OFFSET #{offset}
+</select>
+<!--페이징 처리-->
+<select id="countShipment" parameterType="ShipmentDTO" resultType="int">
+SELECT COUNT(*)
+FROM shipment s
+JOIN book b ON s.book_no = b.book_no
+<where>
+	<choose>
+		<when test="select == 'title' and keyword != null and keyword != ''">
+			b.title LIKE CONCAT('%',#{keyword},'%')
+		</when>
+		<when test="select == 'shipment_no' and keyword != null and keyword != ''">
+			s.shipment_no LIKE CONCAT('%',#{keyword},'%')
+		</when>
+	</choose>
+</where>
+</select>
+<select id="countAll" resultType="int">
+	SELECT COUNT(*) FROM shipment
+</select>
+
+<insert id="insertInvenOut" parameterType="ShipmentDTO">
+  INSERT INTO inventory (
+    book_no, action_type, action_date, location, quantity, reason
+  )
+  VALUES (
+    #{bookNo},
+    'OUT',
+    NOW(),
+    #{location},
+    #{quantity},
+    '출고 등록'
+  )
+</insert>
+<!--출고 수정-->
+<update id="editOutInven" parameterType="ShipmentDTO">
+UPDATE shipment
+SET
+quantity = #{quantity},
+location = #{location},
+partner_no = #{partnerNo},
+delivery_no = #{deliveryNo},
+price = #{price},
+total_amount = #{price} * #{quantity}
+WHERE inventory_no = #{inventoryNo}
+AND shipment_no  = #{shipmentNo}
+</update>
+
+<!-- 출고 수정 시, 차이(editQuantity)만큼 증감. 음수 방지 조건 포함 -->
+<update id="updateInventoryQuantity" parameterType="com.bk.project.shipment.dto.ShipmentDTO">
+  UPDATE inventory
+     SET quantity = quantity - #{editQuantity}
+   WHERE inventory_no = #{inventoryNo}
+     AND quantity - #{editQuantity} >= 0
+</update>
+
+
+
+<!--출고 취소-->
+<delete id="deleteShipment" parameterType="int">
+	DELETE FROM shipment WHERE shipment_no =#{shipmentNo}
+</delete>
+<!--출고 취소 시 재고 수량 증가 -->
+<update id="increaseInven">
+  UPDATE inventory
+  SET quantity = quantity + #{quantity}
+  WHERE inventory_no = #{inventoryNo}
+</update>
+<!-- 정합성 검사용-->
+<select id="checkInven" resultType="int">
+  SELECT COALESCE(quantity, 0)
+  FROM inventory
+  WHERE inventory_no = #{inventoryNo}
+</select>
+
+<!-- 기존 selectShipment 교체 -->
+<select id="selectShipment" parameterType="int" resultType="com.bk.project.shipment.dto.ShipmentDTO">
+ SELECT
+    s.shipment_no   AS shipmentNo,
+    s.inventory_no  AS inventoryNo,
+    s.book_no       AS bookNo,
+    s.quantity      AS quantity,
+    s.price         AS price,
+    i.quantity      AS stockQuantity,
+    i.location AS location,
+    b.title	AS bookTitle
+    
+  FROM shipment s
+  JOIN inventory i ON i.inventory_no = s.inventory_no
+  JOIN book b On s.book_no = b.book_no
+  WHERE s.shipment_no = #{shipmentNo}
+</select>
+
+
+<select id="getShipmentByInvenNo" resultType="com.bk.project.shipment.dto.ShipmentDTO">
+  SELECT 
+    s.inventory_no AS inventoryNo,
+    i.book_no      AS bookNo,
+    s.quantity     AS quantity,
+    s.location     AS location,
+    s.partner_no   AS partnerNo,
+    s.delivery_no  AS deliveryNo,
+    s.price        AS price,
+    b.title        AS bookTitle
+  FROM shipment s
+  JOIN inventory i ON s.inventory_no = i.inventory_no
+  JOIN book b ON i.book_no = b.book_no
+  WHERE s.inventory_no = #{inventoryNo}
+  ORDER BY s.shipment_date DESC, s.shipment_no DESC
+   LIMIT 1
+</select>
+
+
+<select id="getBookMeta" parameterType="int" resultType="map">
+SELECT b.book_no, b.contract_no,
+       a.author_no,
+       c.royalty_rate
+FROM book b
+LEFT JOIN author a   ON a.contract_no = b.contract_no
+LEFT JOIN contract c ON c.contract_no = b.contract_no
+WHERE b.book_no = #{bookNo}
+</select>
+
+<!--출고시 책 가격 불러오기-->
+<select id="findPriceByInventoryNo" resultType="Integer">
+SELECT b.price 
+FROM inventory i 
+JOIN book b 
+ON i.book_no= b.book_no
+WHERE i.inventory_no = #{inventoryNo}
+</select>
+</mapper>

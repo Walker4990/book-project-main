@@ -1,0 +1,60 @@
+
+/* ==================== 보너스 입력 모달 (커스텀) : 모달의 크기가 기존 모달보다 작아야함 ==================== */
+
+#bonusModal .modal-box {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 300px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#bonusModal .modal-content {
+  width: 300px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+}
+#bonusModal button {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#salaryTable{
+  width: auto;               /* 100% -> auto */
+  table-layout: auto;        /* fixed -> auto (내용 기준 칼럼폭) */
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* 한 줄로 보고 싶으면 줄바꿈 금지(원하면 지워도 됨) */
+#salaryTable th,
+#salaryTable td{
+  white-space: nowrap;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+
+#salaryAllForm input[type="month"] {
+	flex: 1;
+	min-width: 300px;
+	height: 42px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid #ccc;
+}
+
+.form-inline-salary{ display:flex; flex-direction:column; gap:8px; }

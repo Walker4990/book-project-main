@@ -1,0 +1,265 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.vacation.mapper.VacationMapper">
+
+
+<resultMap id="VacationMap" type="Vacation">
+<id property="vacationNo" column="vacation_no"/>
+<result  property="memberNo" column="member_no"/>
+<result  property="date" column="date"/>
+<result  property="startDate" column="start_date"/>
+<result  property="endDate" column="end_date"/>
+<result  property="reason" column="reason"/>
+<result  property="status" column="status"/>
+<result  property="approve" column="approve"/>
+</resultMap>
+
+
+<resultMap id="DTOMap" type="VacationDTO">
+<id property="vacationNo" column="vacation_no"/>
+<result  property="memberNo" column="member_no"/>
+<result  property="date" column="date"/>
+<result  property="deptName" column="dept_name"/>
+<result  property="name" column="name"/>
+<result  property="id" column="id"/>
+<result  property="email" column="email"/>
+<result  property="startDate" column="start_date"/>
+<result  property="endDate" column="end_date"/>
+<result  property="reason" column="reason"/>
+<result  property="status" column="status"/>
+<result  property="approve" column="approve"/>
+</resultMap>
+
+<!-- 휴가 신청 -->
+<insert id="addVacation" parameterType="Vacation">
+INSERT INTO vacation(member_no,start_date, end_date, reason)
+VALUES(#{memberNo}, #{startDate}, #{endDate}, #{reason})
+</insert>
+
+
+<!--휴가 신청 정보 뽑기-->
+<select id="allVacation" resultMap="DTOMap">
+SELECT  
+v.vacation_no,
+d.dept_name,
+m.name,
+m.id,
+m.email,
+v.start_date,
+v.end_date,
+v.reason,
+v.status,
+v.approve
+FROM member m
+JOIN vacation v USING(member_no)
+JOIN department d USING(dept_no)
+LIMIT #{offset}, #{limit}
+</select>
+
+
+<!--승인전 휴가 신청 정보 뽑기-->
+<select id="beforeVacation" parameterType="VacationPagingDTO" resultMap="DTOMap">
+SELECT  
+v.vacation_no,
+d.dept_name,
+m.name,
+m.id,
+m.email,
+v.start_date,
+v.end_date,
+v.reason,
+v.status,
+v.approve
+FROM member m
+JOIN vacation v USING(member_no)
+JOIN department d USING(dept_no)
+WHERE v.status = '검토중'
+LIMIT #{offset}, #{limit}
+</select>
+
+<!--승인된 휴가 신청 정보 뽑기-->
+<select id="afterVacation" parameterType="VacationPagingDTO" resultMap="DTOMap">
+SELECT  
+v.vacation_no,
+d.dept_name,
+m.name,
+m.id,
+m.email,
+v.start_date,
+v.end_date,
+v.reason,
+v.status,
+v.approve
+FROM member m
+JOIN vacation v USING(member_no)
+JOIN department d USING(dept_no)
+WHERE v.status = '검토완료'
+LIMIT #{offset}, #{limit}
+</select>
+
+<select id="totalAfter" resultType="int">
+SELECT COUNT(*) FROM vacation
+WHERE status = '검토완료'
+</select>
+
+<select id="totalBefore" resultType="int">
+  SELECT COUNT(*)
+  FROM vacation
+   WHERE status = '검토중'
+</select>
+
+<select id="total" resultType="int">
+  SELECT COUNT(*)
+  FROM vacation
+</select>
+
+
+
+<!--검색 기능-->
+
+
+<select id="searchTotalBefore" parameterType="VacationPagingDTO" resultType="int">
+    SELECT COUNT(*)
+	FROM vacation v
+	JOIN member m USING(member_no)
+	JOIN department d USING(dept_no)
+	WHERE (m.name LIKE CONCAT('%',#{keyword},'%') OR d.dept_name LIKE CONCAT('%',#{keyword},'%'))
+	AND v.status = '검토중'
+	
+</select>
+
+
+
+<select id="searchTotalAfter" parameterType="VacationPagingDTO" resultType="int">
+  SELECT COUNT(*)
+	FROM vacation v
+	JOIN member m USING(member_no)
+	JOIN department d USING(dept_no)
+	WHERE (m.name LIKE CONCAT('%',#{keyword},'%') OR d.dept_name LIKE CONCAT('%',#{keyword},'%'))
+	AND v.status = '검토완료'
+</select>
+
+
+
+<select id="searchTotal" parameterType="VacationPagingDTO" resultType="int">
+  SELECT COUNT(*)
+  FROM vacation v
+  JOIN member m USING(member_no)
+  JOIN department d USING(dept_no)
+  WHERE (m.name LIKE CONCAT('%', #{keyword}, '%')
+  OR d.dept_name LIKE CONCAT('%', #{keyword}, '%'))
+</select>
+
+
+
+<select id="searchBefore" parameterType="VacationPagingDTO" resultMap="DTOMap">
+    SELECT  
+        v.vacation_no,
+        d.dept_name,
+        m.name,
+        m.id,
+        m.email,
+        v.start_date,
+        v.end_date,
+        v.reason,
+        v.status,
+        v.approve
+    FROM member m
+    JOIN vacation v USING(member_no)
+    JOIN department d USING(dept_no)
+    WHERE 
+        (m.name LIKE CONCAT('%', #{keyword}, '%') OR d.dept_name LIKE CONCAT('%', #{keyword}, '%'))
+        AND v.status = '검토중'
+    LIMIT #{offset}, #{limit}
+</select>
+
+
+<select id="searchAfter" parameterType="VacationPagingDTO" resultMap="DTOMap">
+    SELECT  
+        v.vacation_no,
+        d.dept_name,
+        m.name,
+        m.id,
+        m.email,
+        v.start_date,
+        v.end_date,
+        v.reason,
+        v.status,
+        v.approve
+    FROM member m
+    JOIN vacation v USING(member_no)
+    JOIN department d USING(dept_no)
+    WHERE 
+        (m.name LIKE CONCAT('%', #{keyword}, '%') OR d.dept_name LIKE CONCAT('%', #{keyword}, '%'))
+        AND v.status = '검토완료'
+    LIMIT #{offset}, #{limit}
+</select>
+
+
+<!-- 번호로 휴가 테이블 가져오기 -->
+<select id="getVacation" parameterType="int" resultMap="VacationMap">
+SELECT * FROM vacation
+WHERE vacation_no = #{vacationNo}
+</select>
+
+<!--휴가 승인-->
+<update id="approveVacation" parameterType="Vacation">
+UPDATE vacation
+SET status = '검토완료',
+approve = '승인'
+WHERE vacation_no = #{vacationNo}
+</update>
+
+<!--휴가 미승인-->
+<update id="notApprove" parameterType="Vacation">
+UPDATE vacation
+SET status = '검토완료',
+approve = '미승인'
+WHERE vacation_no = #{vacationNo}
+</update>
+
+<!--휴가 즁인 직원 가져오기-->
+<select id="getVacationInfo" resultMap="VacationMap">
+SELECT * FROM vacation
+</select>
+
+<!--휴가 즁인 직원 가져오기-->
+<select id="getApproveVacation" resultMap="VacationMap">
+SELECT * FROM vacation
+WHERE approve = '승인'
+</select>
+
+<select id="vacationCalendar" resultType="map">
+SELECT 
+v.vacation_no,
+d.dept_name,
+m.name,
+m.id,
+m.email,
+v.start_date,
+v.end_date,
+v.reason,
+v.status,
+v.approve 
+FROM member m
+JOIN department d USING(dept_no)
+JOIN vacation v USING(member_no)
+WHERE approve = '승인'
+</select>
+
+
+<!--승인 전인 휴가신청서 가져오기-->
+<select id="notCheckApprove" resultMap="VacationMap">
+SELECT * FROM vacation
+WHERE status = '검토중'
+AND approve = '미정'
+</select>
+
+<select id="checkDuplicationVacation" parameterType="Vacation" resultMap="VacationMap">
+SELECT * FROM vacation
+WHERE member_no = #{memberNo}
+AND (approve = '승인' OR approve = '미정')
+</select>
+
+
+
+</mapper>

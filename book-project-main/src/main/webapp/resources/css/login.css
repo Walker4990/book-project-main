@@ -1,0 +1,97 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f1f7ff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+img {
+  margin-left: 150px;
+  width: 60px;
+  height: 60px;
+}
+
+.loginCard {
+  background: #ffffff;
+  padding: 40px 30px;
+  width: 360px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.loginCard h1 {
+  margin: 0 0 20px;
+  font-size: 1.6em;
+  text-align: center;
+  color: #333;
+}
+
+.inputGroup {
+  margin-bottom: 15px;
+}
+
+.inputGroup input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #f4f4f4;
+  border-radius: 8px;
+  background-color: #fafafa;
+  font-size: 14px;
+}
+
+.loginBtn {
+  width: 100%;
+  padding: 12px;
+  background-color: #f4f4f4;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+.loginBtn:hover {
+  background-color: #e8e8e8;
+}
+
+.findPwd {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.findPwd a {
+  font-size: 0.85em;
+  color: #555;
+  text-decoration: none;
+}
+
+.findPwd a:hover {
+  text-decoration: underline;
+}
+
+.registerCard {
+  margin-top: 20px;
+  background: rgba(0, 0, 0, 0.09);
+  padding: 40px 30px;
+  width: 360px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.registerCard h1 {
+  margin: 0 0 20px;
+  font-size: 1.6em;
+  text-align: center;
+  color: #333;
+}
+
+.registerCard p {
+  margin: 0 0 5px;
+  font-size: 0.8em;
+  text-align: center;
+  color: #333;
+}

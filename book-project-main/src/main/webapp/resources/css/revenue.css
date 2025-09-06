@@ -1,0 +1,52 @@
+input[type="month"] {
+  flex: 1;
+  min-width: 300px;
+  height: 42px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.form-inline-revenue {
+  display: flex;
+ }
+ 
+ .btn-wrap-revenue{
+   margin-left: 10px;
+   display: flex;
+   justify-content: left;
+   gap: 8px;
+}
+
+.btn-wrap-revenue .btnNavy {
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: #2c3e50;
+  color: #fff;
+}
+
+.form-inline-expense {
+  display: flex;
+ }
+ 
+ .btn-wrap-expense{
+   margin-left: 10px;
+   display: flex;
+   justify-content: left;
+   gap: 8px;
+}
+
+.btn-wrap-expense .btnNavy {
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: #2c3e50;
+  color: #fff;
+}

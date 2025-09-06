@@ -1,0 +1,132 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bk.project.book.mapper.BookMapper">
+
+<resultMap id="BookMap" type="com.bk.project.book.vo.Book">
+<id property="bookNo" column="book_no" />
+<result property="title" column="title" />
+<result property="author" column="author" />
+<result property="publishDate" column="publish_date" />
+<result property="price" column="price" />
+<result property="genre" column="genre" />
+
+</resultMap>
+
+<select id="allBooks" resultMap="BookMap">
+SELECT * FROM book
+</select>
+
+
+<!-- 전체 책 조회 -->
+<select id="allBook" parameterType="BookPagingDTO" resultMap="BookMap">
+SELECT * FROM book
+LIMIT #{offset}, #{limit}
+</select>
+
+ 
+<select id="total" resultType="int">
+SELECT COUNT(*) FROM book
+</select>
+
+<!-- 책 조회 -->
+<select id="searchBook" parameterType="map" resultType="Book">
+SELECT *
+    FROM book 
+    <where>
+			<choose>	
+				<when test="select == 'author' and keyword != null and keyword != ''">
+				  author LIKE CONCAT('%', #{keyword}, '%')
+				</when>		
+				<when test="select == 'title' and keyword != null and keyword != ''">
+				 title LIKE CONCAT('%', #{keyword}, '%')
+				</when>		
+			</choose>
+		</where>
+		LIMIT #{offset}, #{limit}
+</select>
+
+<select id="countBook" parameterType="BookPagingDTO" resultType="int">
+SELECT COUNT(*) FROM book
+<where>
+	<choose>	
+		<when test="select == 'author' and keyword != null and keyword != ''">
+		  author LIKE CONCAT('%', #{keyword}, '%')
+		</when>		
+		<when test="select == 'title' and keyword != null and keyword != ''">
+		 title LIKE CONCAT('%', #{keyword}, '%')
+		</when>		
+	</choose>
+</where>
+</select>
+
+<!-- allBook에서 선택한 책 목록 불러오기 -->
+<select id="selectUpdate" parameterType="int" resultMap="BookMap">
+SELECT * FROM book
+WHERE book_no = #{bookNo}
+</select>
+
+<!-- 책 추가 -->
+<insert id="newBook" parameterType="Book">
+    INSERT INTO book (
+    book_no, title, author, publish_date, price, contract_no, genre
+  ) VALUES (
+    #{bookNo}, #{title}, #{author}, #{publishDate}, #{price}, #{contractNo}, #{genre}
+  )
+	
+</insert>
+
+<!--책 정보 수정-->
+<update id="updateBook" parameterType="Book">
+    UPDATE book
+    <set>
+        <if test="title != null">
+            title = #{title},
+        </if>
+        <if test="publishDate != null">
+            publish_date = #{publishDate},
+        </if>
+        <if test="price != 0">
+            price = #{price},
+        </if>
+    </set>
+    WHERE book_no = #{bookNo}
+</update>
+
+<delete id="deleteBook" parameterType="Book">
+DELETE FROM book
+WHERE contract_no = #{contractNo};
+</delete>
+
+<select id="confirmBook">
+	SELECT COUNT(*) FROM book WHERE title =#{title}
+</select>
+<select id="selectTitle" resultType="string" parameterType="int">
+	SELECT title FROM book WHERE book_no = #{bookNo}
+</select>
+
+<!--책 번호로 작가찾기-->
+<select id="findAuthorNoByBookNo" resultType="int">
+SELECT a.author_no
+FROM author a
+JOIN book b ON a.contract_no = b.contract_no
+WHERE b.book_no = #{bookNo}
+</select>
+
+<!--책 이름으로 해당책이 진짜 있는지 찾기-->
+<select id="findBookByBookName" resultType="String">
+SELECT *
+FROM book
+WHERE title = #{bookTitle}
+</select>
+<!--책 번호로 해당책이 진짜 있는지 찾기-->
+<select id="findBookByNo" resultType="Book">
+SELECT *
+FROM book
+WHERE book_no = #{bookNo}
+</select>
+<!--책 번호로 가격 찾기 (검수 시 필요)-->
+<select id="findPriceByBookNo" parameterType="int">
+SELECT price FROM book WHERE book_no=#{bookNo}
+</select>
+
+
+</mapper>
