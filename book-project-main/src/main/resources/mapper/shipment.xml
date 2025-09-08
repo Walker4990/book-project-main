@@ -226,4 +226,6 @@ JOIN book b
 ON i.book_no= b.book_no
 WHERE i.inventory_no = #{inventoryNo}
 </select>
+
+
 </mapper>

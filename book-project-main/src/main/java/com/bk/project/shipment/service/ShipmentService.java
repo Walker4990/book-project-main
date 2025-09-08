@@ -212,7 +212,7 @@ public class ShipmentService {
 
 	    // 4) 재고 반영(원자적) : quantity = quantity - delta, 음수 방지
 	    if (delta != 0) {
-	        int affected = mapper.updateInventoryQuantity(in); // SQL: quantity = quantity - #{editQuantity} AND quantity - #{editQuantity} >= 0
+	        int affected = mapper.updateInventoryQuantity(in); 
 	        if (affected == 0) return "out_of_stock";
 	    }
 
@@ -229,7 +229,11 @@ public class ShipmentService {
 	        Integer authorNo      = (Integer) meta.get("author_no");         // null 가능
 	        Integer contractNo    = (Integer) meta.get("contract_no");       // null 가능
 	        BigDecimal royaltyRate = meta.get("royalty_rate") == null ? null : (BigDecimal) meta.get("royalty_rate");
-
+/*
+			Integer authorNo = mapper.getAuthorNoByBookNo(bookNo);
+			Integer contractNo = mapper.getContractNoByBookNo(bookNo);
+			BigDecimal royaltyRate = mapper.getRoyaltyRateByBookNo(bookNo);
+*/
 	        // (c) 재무 정정(수익)
 	        Financial fi = new Financial();
 	        fi.setType("REVENUE");
