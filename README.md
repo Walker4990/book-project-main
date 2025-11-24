@@ -90,8 +90,8 @@ com.bk.project
 - ShipmentService  
   https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/shipment/service/ShipmentService.java  
 
-- InventoryService  
-  https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/inventory/service/InventoryService.java  
+- DefectService  
+  https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/defect/service/DefectService.java  
 
 - FinancialService  
   https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/financial/service/FinancialService.java  
