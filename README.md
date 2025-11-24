@@ -207,12 +207,11 @@ printOrder, shipment 등에서 공통 패턴 활용
 https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project
 
 대표 기능별 링크 예시
-- [printOrderService] https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project/printorder/service
-- [ShipmentController](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/shipment/ShipmentController.java)
-- [InventoryService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/inventory/InventoryService.java)
-- [FinanceTransactionService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/financial/FinanceService.java)
-- [RoyaltyService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/royalty/RoyaltyService.java)
-- [SalaryPayService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/salary/SalaryService.java)
+- [PrintOrderService](https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project/printorder/service)
+- [ShipmentService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/shipment/service/ShipmentService.java)
+- [InventoryService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/inventory/service/InventoryService.java)
+- [DefectService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/defect/service/DefectService.java)
+- [SalaryPayService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/salary/service/SalaryService.java)
 
 
 필요하면 각 코드의 라인 번호 하이라이트 버전도 만들어줄 수 있음.
