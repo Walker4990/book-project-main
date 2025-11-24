@@ -93,11 +93,11 @@ com.bk.project
 - DefectService  
   https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/defect/service/DefectService.java  
 
-- FinancialService  
-  https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/financial/service/FinancialService.java  
+- AttendanceController  
+ https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/attendance/controller/AttendanceController.java 
 
-- RoyaltyService  
-  https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/royalty/service/RoyaltyService.java  
+- SalaryService  
+  https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/salary/service/SalaryService.java  
 
 ---
 
