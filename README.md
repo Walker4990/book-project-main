@@ -58,8 +58,6 @@ com.bk.project
 ├ payroll/ ├ printorder/ ├ royalty/ ├ salary/
 ├ shipment/ ├ tax/ └ taxPayment/
 
-yaml
-코드 복사
 
 모든 모듈은 MVC 패턴에 맞춰 **Controller / Service / Mapper / XML / VO** 구조를 동일하게 유지합니다.
 
