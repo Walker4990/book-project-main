@@ -151,17 +151,7 @@ public class PrintOrderService {
 			System.out.println("service 실행 완료");
 		}
 		
-		// 재고 계산
-//		for(PrintOrderDetailVO newDetail : newList) {
-//			System.out.println("재고계산 : "+ newList);
-//			int bookNo = newDetail.getBookNo();
-//			int newQuantity = newDetail.getQuantity();
-//			
-//			PrintOrderDetailVO oldDetail = getOldDetail(oldList, bookNo);
-//			int oldQuantity = (oldDetail != null) ? oldDetail.getQuantity() : 0;
-//			int editQuantity = newQuantity-oldQuantity;
-//			
-//		}
+		
 		return result;
 	}
 	
