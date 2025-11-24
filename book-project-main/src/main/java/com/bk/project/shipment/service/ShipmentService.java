@@ -64,7 +64,7 @@ public class ShipmentService {
              mapper.insertShipment(dto);
 
              // 4. 재고(inventory) 차감
-             int affected = mapper.decreaseInven(dto); // UPDATE ... SET quantity=quantity-? WHERE inventory_no=? AND quantity>=?
+             int affected = mapper.decreaseInven(dto); 
              if (affected == 0) {
                  // 재고 부족 or 동시성 경합 → 전체 트랜잭션 롤백
                  System.err.println("❌ 출고 실패: 재고 부족 또는 경합 - inventoryNo=" + dto.getInventoryNo() +
@@ -111,9 +111,9 @@ public class ShipmentService {
              taxMapper.insertTax(tax);
              
              
-          // 저작권료 등록  (기존 Double 사용 코드 → BigDecimal 사용으로 교체)
+          // 저작권료 등록  
              Integer authorNo = bookMapper.findAuthorNoByBookNo(dto.getBookNo());
-             BigDecimal royaltyRate = contractMapper.findRoyaltyRate(dto.getBookNo()); // DECIMAL(5,2) → BigDecimal
+             BigDecimal royaltyRate = contractMapper.findRoyaltyRate(dto.getBookNo()); 
              Integer contractNo = contractMapper.findContractNoByBookNo(dto.getBookNo());
              
              if (authorNo != null && royaltyRate != null) {
