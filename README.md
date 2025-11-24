@@ -50,13 +50,14 @@
 ---
 
 ## 🗂️ 3. 실제 패키지 구조
-
-com.bk.project
- ├ attendance/   ├ author/      ├ book/        ├ contract/
- ├ defect/       ├ evaluation/  ├ financial/   ├ inventory/
- ├ marketing/    ├ member/      ├ overtime/    ├ partner/
- ├ payroll/      ├ printorder/  ├ royalty/     ├ salary/
- ├ shipment/     ├ tax/         └ taxPayment/
+```
+com.bk.project  
+├ attendance / author / book / contract / defect  
+├ evaluation / financial / inventory / marketing / member  
+├ overtime / partner / payroll / printorder / royalty  
+├ salary / shipment / tax / taxPayment  
+└ request / delivery / department / quit / calendar / budget
+```
 
 
 모든 모듈은 MVC 패턴에 맞춰 **Controller / Service / Mapper / XML / VO** 구조를 동일하게 유지합니다.
