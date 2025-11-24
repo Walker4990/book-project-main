@@ -207,7 +207,7 @@ printOrder, shipment 등에서 공통 패턴 활용
 https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project
 
 대표 기능별 링크 예시
-- [PrintOrderController](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/printorder/PrintOrderController.java)
+- [printOrderService] https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project/printorder/service
 - [ShipmentController](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/shipment/ShipmentController.java)
 - [InventoryService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/inventory/InventoryService.java)
 - [FinanceTransactionService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/financial/FinanceService.java)
