@@ -1,65 +1,67 @@
-📚 Publisher ERP System — 출판사 통합 ERP 시스템
+📚 Publisher ERP System — 출판사 통합 ERP
 
-출판사의 도서·재고·발주·출고·회계·인사·급여·평가 등 전사 업무를 하나의 웹 시스템으로 통합한 ERP 프로젝트입니다.
-실제 기업의 업무 흐름을 분석해, 모듈 간 데이터 정합성과 자동화 흐름을 중점으로 설계했습니다.
+출판사의 발주·재고·출고·회계·인사·급여·평가 전 과정을 하나의 시스템으로 통합한 ERP 프로젝트입니다.
+핵심 목표는 업무 흐름 자동화, 데이터 정합성 유지, 모듈 간 확장성 확보입니다.
 
-🔥 1. 프로젝트 핵심 요약
+🎯 1. 핵심 요약
+✔ 발주 → 재고 → 출고 → 재무(수익·지출) 자동화
 
-도서 발주 → 입고 → 재고 → 출고 → 재무(수익/지출) 자동 반영
+발주 시 지출 자동 생성 (finance_transaction)
 
-작가 계약 / 인세 정산 / 세금 처리 자동화
+출고 시 재고 차감 + 수익 자동 생성 + 세금 자동 생성
 
-인사 평가 / 급여 관리 / 초과근무 자동 계산
+계약된 인세율 기반으로 인세(royalty) 자동 계산
 
-품질/불량률 관리, 마케팅, 배송, 거래처 관리 포함
+✔ 모듈 단위 패키지 구조로 확장성 극대화
 
-모든 기능을 모듈 기반으로 분리해 유지보수성 강화
+printorder / inventory / shipment / financial / salary / evaluation …
 
-🏗️ 2. 핵심 기술 스택
+실제 기업 업무 단위를 기준으로 설계하여 유지보수성 강화
 
-Backend: Spring Boot, MyBatis, Java 11
+✔ 트랜잭션 기반의 데이터 정합성
 
-DB: MySQL 8
+출고 등록 시 여러 insert/update를 한 번에 처리
+
+출고 수정 시 기존 수량 복원 → 변경분(diff)만 반영
+
+오류 발생 시 전체 rollback
+
+🏗️ 2. 기술 스택
+
+Backend: Spring Boot, MyBatis
+
+DB: MySQL
 
 Frontend: JSP, jQuery, Bootstrap
 
-Infra: Tomcat 내장 서버
+ETC: Lombok, JSTL, Ajax, FormData, Axios
 
-기타: Lombok, JSTL, Ajax, FormData 활용
+📦 3. 주요 기능 요약
+📚 도서/작가/계약
 
-📦 3. 기능별 핵심 모듈 요약
-
-아래 폴더들은 실제 업무 단위 그대로 설계된 기능 패키지이다:
-
-📚 Book / Author / Contract
-
-도서 등록·관리
-
-작가 관리
+도서 및 작가 관리
 
 계약 등록 시 작가/도서 자동 생성
 
-인세율, 정산 기준 등록
+인세율, 정산 기준 저장
 
-🏭 PrintOrder (도서 발주)
+🏭 발주(PrintOrder)
 
-도서 발주 등록
+단일 → 다건 상세 발주로 확장 (FormData → List 자동 바인딩)
 
-단일 입력 → 다건 상세 발주로 확장(FormData → List 자동 바인딩)
+발주 시 지출 + 세금 자동 반영
 
-발주 시 지출 기록 자동 생성(finance_transaction)
+📦 재고(Inventory)
 
-세금 자동 생성(tax)
+단일 row 기반 재고 통합 구조
 
-📦 Inventory (재고 관리)
+출고 시 재고 자동 감소
 
-단일 row 기반 통합 재고 구조 (IN/OUT 가감)
+수량 0이면 row 자동 삭제
 
-출고 시 수량 감소, 0이면 자동 삭제
+출고 수정 시 diff 로직 적용
 
-출고 수정 시 diff 로직으로 반영
-
-🚚 Shipment (출고 관리)
+🚚 출고(Shipment)
 
 도서 다건 출고
 
@@ -69,157 +71,115 @@ Infra: Tomcat 내장 서버
 
 재고 차감
 
-수익 자동 생성(finance_transaction)
+수익 자동 기록
 
-세금 기록 생성
+세금 자동 생성
 
-수정/삭제 시 재고 복원 로직 포함
+수정/삭제 시 재고 자동 복구
 
-💰 Finance (재무)
+💰 재무(Financial)
 
-finance_transaction: 모든 수익/지출 기록 통합 관리
+모든 수익/지출을 finance_transaction에서 통합 관리
 
-출고 → 수익 자동
+출고·발주·급여·인세·세금 자동 반영
 
-발주 → 지출 자동
+월별 대시보드
 
-인세, 급여, 세금 등도 자동 집계
-
-월별 수익/지출 대시보드
-
-🖋️ Royalty (인세)
+🖋 인세(Royalty)
 
 출고량 기반 인세 자동 계산
 
-계약 정보의 인세율로 계산
+계약된 인세율 기반
 
-finance_transaction과 자동 연동
+👥 인사·근태·급여
 
-🧾 Tax / TaxPayment
+출퇴근 기반 초과근무 자동 계산
 
-발주·출고·급여에 따른 세금 기록 자동 생성
+급여 등록 및 일괄 지급
 
-세금 납부 입력/관리
+급여 지급 시 지출 자동 반영
 
-👥 Member / Attendance / Overtime / Salary / Payroll
+평가(evaluation) 모듈 연계
 
-직원 등록·관리
-
-출퇴근 기록 기반 초과근무 자동 계산
-
-급여 등록 + 일괄 지급
-
-급여 지급 시 finance_transaction 지출 자동 등록
-
-평가 모듈(evaluation)로 연계
-
-📝 Evaluation
-
-인사 평가용 지표 생성
-
-관리자 권한 기반 접근
-
-승진 대상자 조회 기능
-
-🛠 Defect (품질 보증)
+🛠 품질(Defect)
 
 불량률 관리
 
 불량 사유별 통계
 
-책별 재고 대비 불량률 차트
+품목 대비 불량률 차트 제공
 
-📊 Marketing
-
-마케팅 캠페인 관리
-
-파트너사와의 금액·지출·성과 기록
-
-🔗 4. 패키지 구조 (실제 프로젝트 구조)
+🗂️ 4. 실제 패키지 구조
 
 /src/main/java/com/bk/project
 
-attendance/
-author/
-book/
-budget/
-calendar/
-claim/
-contract/
-defect/
-delivery/
-department/
-evaluation/
-financial/
-inventory/
-marketing/
-member/
-overtime/
-partner/
-payroll/
-printorder/
-quit/
-request/
-royalty/
-salary/
-shipment/
-tax/
-taxPayment/
+attendance/  author/  book/  budget/  calendar/
+claim/       contract/ defect/ delivery/ department/
+evaluation/  financial/ inventory/ marketing/ member/
+overtime/    partner/ payroll/ printorder/ quit/
+request/     royalty/ salary/ shipment/ tax/ taxPayment/
 
 
-각 폴더는 Controller / Service / Mapper / XML / VO 구조를 동일하게 유지해 확장성, 유지보수성을 확보했다.
+👉 모든 모듈은 Controller / Service / Mapper / XML / VO 동일한 구조 유지
+👉 유지보수성과 협업 편의성 극대화
 
-🚀 5. 핵심 기술 포인트 (면접에서 반드시 강조)
-1) 모듈 간 자동화
+⚙️ 5. 기술적 해결 포인트 (면접 핵심)
+🔹 정합성 중심 트랜잭션 설계
 
-도서 발주 → 재고 → 출고 → 재무 → 세금 → 인세까지
-연결되는 모든 흐름을 자동화로 설계.
+발주·출고 등 다중 insert/update를 하나의 트랜잭션에서 처리
 
-2) 트랜잭션 기반 데이터 정합성
+부분 성공 없이 전체 성공/전체 실패 구조
 
-출고 등록 시 5가지 insert/update 하나로 처리
+🔹 출고 수정(diff) 알고리즘
 
-오류 발생 시 전체 rollback
+기존 출고 수량 복원
 
-출고 수정 시 기존 수량 복원 → 변경수량 반영(diff) 로직 별도 구현
+변경된 수량만 재차 차감
 
-3) 확장성 있는 패키지 구조
+수정/삭제가 발생해도 데이터 불일치가 없음
 
-기능별 모듈화를 통해 단위 추가·확장 용이
+🔹 업무 자동화
 
-예: salary / payroll / evaluation이 상호 독립적이면서 연계됨
+세금, 인세, 수익/지출 등 사람이 입력하던 항목 대부분을 자동화
 
-4) FormData → List 자동 바인딩
+업무 누락 방지·정확도 증가
 
-DetailList 구조를 통해 다건 입력 구현
+🔹 확장 가능한 패키지 설계
 
-printOrder, shipment 등에서 공통 패턴 활용
+모듈별 책임 분리
 
-5) 중복 처리 & 상태 관리
+신규 기능 추가 용이
 
-출고, 발주, 급여지급 등에서 중복 등록 방지 로직 적용
+🔗 6. 주요 코드 링크
 
-상태 기반 UI/백엔드 처리 일원화
+PrintOrderService
+https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/printorder/service/PrintOrderService.java
 
-📎 6. 핵심 코드 링크 (너 리포지토리에 맞게 자동 생성)
+ShipmentService
+https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/shipment/service/ShipmentService.java
 
-👉 네 repo 기준 경로:
-https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project
+InventoryService
+https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/inventory/service/InventoryService.java
 
-대표 기능별 링크 예시
-- [PrintOrderService](https://github.com/Walker4990/book-project-main/tree/main/book-project-main/src/main/java/com/bk/project/printorder/service/PrintOrderService.java)
-- [ShipmentService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/shipment/service/ShipmentService.java)
-- [InventoryService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/inventory/service/InventoryService.java)
-- [DefectService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/defect/service/DefectService.java)
-- [SalaryPayService](https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/salary/service/SalaryService.java)
+FinancialService
+https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/financial/service/FinancialService.java
 
+RoyaltyService
+https://github.com/Walker4990/book-project-main/blob/main/book-project-main/src/main/java/com/bk/project/royalty/service/RoyaltyService.java
 
-필요하면 각 코드의 라인 번호 하이라이트 버전도 만들어줄 수 있음.
+🧩 7. 아쉬웠던 점 & 개선 계획
 
-📈 7. 발표·면접에서 이렇게 말하면 된다
+재고 이력 추적 미흡
+단일 row 구조라 이동 이력 기록이 부족함 → inventory_history 테이블 도입 예정
 
-“출판사 업무 전체를 하나의 ERP로 묶기 위해
-발주–재고–출고–재무 흐름을 자동화하고,
-수정/삭제를 고려한 트랜잭션 기반 구조로 설계했습니다.
-또한 인사·급여·인세·세금 등 여러 모듈을 기능 단위 패키지로 분리해
-유지보수성과 확장성을 확보했습니다.”
+월 마감(batch) 처리 미완성
+재무·세금·인세 자동화는 완료했지만 월별 마감 배치 기능 추가 필요
+
+JSP 기반 UI의 한계
+화면 유지보수성이 낮아 이후 React 기반 프론트엔드 분리 계획
+
+권한(Role) 체계 단순함
+관리자/일반 사용자 수준 → 부서별 역할 기반 권한 구조로 개선 예정
+
+배포/CI 환경 미도입
+로컬 개발 중심 → Docker + GitHub Actions 기반 CI/CD 구축 계획
