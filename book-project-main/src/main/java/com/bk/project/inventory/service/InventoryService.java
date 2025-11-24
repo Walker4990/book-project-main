@@ -22,44 +22,6 @@ public class InventoryService {
 		mapper.insertInven(vo);
 	}
 	
-	
-//	public boolean insertInven(List<Inventory> outList) {
-//	    for (Inventory inven : outList) {
-//	        try {
-//	            // 1. 현재 재고 확인
-//	            int status = mapper.checkInven(inven.getBookNo());
-//	            int quantity = inven.getQuantity();
-//
-//	            System.out.println(">> 받은 bookNo = " + inven.getBookNo());
-//	            System.out.println(">> checkInven 조회 결과 = " + status);
-//	            
-//	            System.out.println(">> 출고 요청 도서번호: " + inven.getBookNo());
-//	            System.out.println(">> 현재 재고량: " + status + ", 출고 요청 수량: " + quantity);
-//
-//	            // 2. 재고 부족 시 실패 처리
-//	            if (status < quantity) {
-//	                System.out.println(">> 재고 부족으로 출고 실패");
-//	                return false;
-//	            }
-//
-//	            // 3. 출고 처리
-//	            inven.setActionType("OUT");
-//	            inven.setActionDate(LocalDate.now());
-//
-//	            // 4. 출고 등록
-//	            mapper.insertInven(inven);
-//	            System.out.println(">> 출고 등록 성공");
-//	        } catch (Exception e) {
-//	            System.out.println(">> 출고 등록 중 예외 발생: " + e.getMessage());
-//	            e.printStackTrace();
-//	            return false;
-//	        }
-//	    }
-//
-//	    return true;
-//	}
-	
-	
 	public List<Inventory> allInven(){
 		return mapper.allInven();
 		
