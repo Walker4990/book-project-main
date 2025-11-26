@@ -106,6 +106,6 @@ com.bk.project
 - JSP → React 리팩토링과 함께 **도메인 단위 패키지 구조로 재정비** 예정
 - 출판사의 수익구조를 파악하여 수익에 대한 부분 추가 예정
 - 단일 row 재고 구조의 한계를 보완하기 위해 **inventory_history 테이블 추가** 계획  
-- 배포 자동화를 위해 Docker + GitHub Actions 기반 CI/CD 구축 예정
+
 
 ---
